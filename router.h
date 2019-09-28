@@ -5,21 +5,21 @@
 #include<sys/socket.h>
 #include<pthread.h>
 
-#define QUEUE_SIZE 92
-#define MSG_SIZE 100
-#define NUM_ROT 8  
+// #define QUEUE_SIZE 92
+// #define MSG_SIZE 100
+// #define NUM_ROT 8  
 
-typedef struct{
-    int id, port, msg_in, msg_out;
-    char ip[32];
-}router;
+// typedef struct{
+//     int id, port, msg_in, msg_out;
+//     char ip[32];
+// }router;
 
-typedef struct{
-    int origin, dest, type;
-    char content[MSG_SIZE];
+// typedef struct{
+//     int origin, dest, type;
+//     char content[MSG_SIZE];
 
-}package;
+// }package;
 
-typedef struct{
-    int origin, dest, cost, path[NUM_ROT];
-}table;
+// typedef struct{
+//     int origin, dest, cost, path[NUM_ROT];
+// }table;
