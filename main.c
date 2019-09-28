@@ -5,12 +5,20 @@
 #include <pthread.h>
 
 typedef struct setar_configuracoes{
-	int s;
+	int id;
 }setar_configuracoes;
 
+//struct dos vertices para o grafo da rede
+typedef struct nodo{
+	int id;
+	int custo;
+	struct nodo *next;
+}vertex;
+
+//função auxiliar para as configurações iniciais
 setar_configuracoes inicializa_protocolo(int ID){
 	setar_configuracoes set_config;
-	set_config.s = ID;
+	set_config.id = ID;
 	return set_config;
 }
 
