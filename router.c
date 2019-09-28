@@ -1,6 +1,7 @@
 #include "router.h"
 
 pthread_t receiver_thread, sender_thread;
+int id;
 
 typedef struct set_config{
 	int id;
@@ -30,7 +31,7 @@ set_config inicializa_protocolo(int id){
 void menu(int id_router){
 		system("clear");
 		printf("\t\t┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n");
-		printf("\t\t┃            Router 0%d             ┃\n", id_router);
+		printf("\t\t┃            Router 0%d            ┃\n", id_router);
 		printf("\t\t┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫\n");
 		printf("\t\t┃ ➊ ─ Enviar mensagem             ┃\n");
 		printf("\t\t┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫\n");
@@ -45,12 +46,12 @@ void *receiver(void *data){
 }
 
 //função da thread sender
-void *sender(void *data, int id_router){
+void *sender(void *data){
 	char buf[BUFLEN];
 	int id_destiny, op;
 
 	while(1){
-		menu(id_router);
+		menu(id);
 		scanf("%d", &op);
 
 		switch(op){
@@ -65,13 +66,18 @@ void *sender(void *data, int id_router){
 }
 
 int main(int argc, char *argv[]){
-	int id;
 	set_config config;
 
 	if(argc < 2)
 		die("Insira o ID do roteador!\n");
 	else if(argc > 2)		
 		die("Insira apenas um ID para o roteador!\n");
+
+	pthread_create(&receiver_thread, NULL, receiver, NULL);
+	pthread_create(&sender_thread, NULL, sender, NULL);
+
+	pthread_join(sender_thread, NULL);
+
 
 	id = strtol(argv[1], NULL, 10); //função de casting do argv id para int 
 
