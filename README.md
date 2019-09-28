@@ -2,7 +2,7 @@
 
 Disciplina: Redes de Computadores
 
-Autores: Isabeli Reik e Matheus Negrão
+Autores: **Isabeli Reik** e **Matheus Negrão**
 
 Execução:
 
