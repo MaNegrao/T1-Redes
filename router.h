@@ -8,6 +8,17 @@
 #define SERVER "127.0.0.1"
 #define BUFLEN 512  //Max length of buffer
 
+typedef struct set_config{
+	int id;
+}set_config;
+
+//struct dos vertices para o grafo da rede
+typedef struct nodo{
+	int id;
+	int custo;
+	struct nodo *next;
+}vertex;
+
 // typedef struct{
 //     int id, port, msg_in, msg_out;
 //     char ip[32];

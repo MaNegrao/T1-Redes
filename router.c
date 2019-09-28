@@ -3,17 +3,6 @@
 pthread_t receiver_thread, sender_thread;
 int id;
 
-typedef struct set_config{
-	int id;
-}set_config;
-
-//struct dos vertices para o grafo da rede
-typedef struct nodo{
-	int id;
-	int custo;
-	struct nodo *next;
-}vertex;
-
 //função que retorna os erros que aconteçam na execução e a encerra
 void die(char *s){
 	perror(s);
