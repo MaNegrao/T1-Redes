@@ -5,9 +5,8 @@
 #include<sys/socket.h>
 #include<pthread.h>
 
-// #define QUEUE_SIZE 92
-// #define MSG_SIZE 100
-// #define NUM_ROT 8  
+#define SERVER "127.0.0.1"
+#define BUFLEN 512  //Max length of buffer
 
 // typedef struct{
 //     int id, port, msg_in, msg_out;
