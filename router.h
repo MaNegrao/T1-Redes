@@ -13,12 +13,12 @@
 typedef struct router{
      int id, port, msg_in, msg_out;
      char ip[32];
-}router;
+}Router;
 
 typedef struct{
     int origin, dest, type;
     char content[MSG_SIZE];
-}package;
+}Package;
 
 // typedef struct{
 //     int origin, dest, cost, path[NUM_ROT];
