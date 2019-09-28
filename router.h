@@ -20,6 +20,7 @@ typedef struct{
     char content[MSG_SIZE];
 }Package;
 
-// typedef struct{
-//     int origin, dest, cost, path[NUM_ROT];
-// }table;
+typedef struct{  //Estrutura das tabelas de roteamentos
+  int cost[N_ROT]; //custo
+  int path[N_ROT]; //caminho
+}Table;
