@@ -6,10 +6,10 @@ Autores: Isabeli Reik e Matheus Negrão
 
 Execução:
 
-...
+'''
 gcc -pthread router.c -o router
-...
+'''
 
-...
+'''
 ./router *número_do_roteador*
-...
+'''
