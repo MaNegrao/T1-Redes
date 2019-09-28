@@ -1,2 +1,4 @@
-# T1-Redes
-Trabalho 1 de Redes de Computadores
+# T1 - Programação de sockets e roteamento
+
+Disciplina: Redes de Computadores
+Autores: Isabeli Reik e Matheus Negrão
