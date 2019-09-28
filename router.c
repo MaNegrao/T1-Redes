@@ -92,14 +92,9 @@ int main(int argc, char *argv[]){
 	//limpa a tabela router
 	memset(router_table, -1, sizeof(int) * N_ROT * N_ROT);
 
-<<<<<<< HEAD
 	create_router();
 
 	pthread_create(&receiver_thread, NULL, receiver, NULL);
-=======
-	//criação das threads e join
-	pthread_create(&receiver_thread, NULL, receiver, NULL); 
->>>>>>> 1e8839c706ae2ecf8ccac33f0bec40139edaa089
 	pthread_create(&sender_thread, NULL, sender, NULL);
 
 	//pthread_join(sender_thread, NULL);
