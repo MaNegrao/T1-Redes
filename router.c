@@ -64,15 +64,18 @@ int main(int argc, char *argv[]){
 		die("Digite o ID do roteador!\n");
 	else if(argc > 2)		
 		die("Digite apenas um ID para o roteador!\n");
-	id_router = strtol(argv[1], NULL, 10); //função de casting do argv id para int 
 
 	if(id_router >= N_ROT){
-		die("ID de roteador inválido!\n");
+		die("ID do roteador inválido!\n");
 	}
 
+	id_router = strtol(argv[1], NULL, 10); //função de casting do argv id para int 
+
+	//limpa a tabela router
 	memset(router_table, -1, sizeof(int) * N_ROT * N_ROT);
 
-	pthread_create(&receiver_thread, NULL, receiver, NULL);
+	//criação das threads e join
+	pthread_create(&receiver_thread, NULL, receiver, NULL); 
 	pthread_create(&sender_thread, NULL, sender, NULL);
 
 	pthread_join(sender_thread, NULL);
