@@ -7,7 +7,7 @@ pthread_t receiver_thread, sender_thread;
 int router_socket, id_router;
 struct sockaddr_in si_me, si_other;
 
-void die(char *s){ //função que retorna os erros que aconteçam na execução e a encerra
+void die(char *s){ //função que retorna os erros que aconteçam na execução e encerra
 	perror(s);
 	exit(1);
 }
@@ -112,7 +112,7 @@ void create_router(){ //função que cria os sockets para os roteadores
 		die("Erro ao conectar o socket a porta!\n");
 }
 
-void menu(){ //apenas uma função de menu
+void menu(){ //função menu
 		system("clear");
 		printf("\t\t┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n");
 		printf("\t\t┃           Roteador %02d           ┃\n", id_router);
@@ -138,14 +138,14 @@ void *sender(void *data){ //função da thread sender
 		menu();
 		scanf("%d", &op);
 		switch(op){
-			case 0:
+			case 0: //sair
 				exit(0);
 				break;
-			case 1:
+			case 1: //enviar mensagem
 				printf("joia\n");
 				sleep(1);
 				break;
-			case 2:
+			case 2: //ver mensagens anteriores
 				break;
 			default:
 				printf("Opção inválida!\n");
@@ -154,7 +154,7 @@ void *sender(void *data){ //função da thread sender
 	}
 }
 
-void *receiver(void *data){
+void *receiver(void *data){ //função da thread receiver
 	
 	while(1){
 		break;

@@ -6,25 +6,25 @@
 #include<sys/socket.h>
 #include<pthread.h>
 
-#define BUFLEN 512  //Max length of buffer
-#define N_ROT 6
-#define MSG_SIZE 100
+#define BUFLEN 512    //tamanho máximo do buffer
+#define N_ROT 6       //número de roteadores
+#define MSG_SIZE 100  //tamanho da mensagem
 
-typedef struct router{
+typedef struct router{//estrutura do roteador
      int id, port, msg_in, msg_out;
      char ip[32];
 }Router;
 
-typedef struct{
+typedef struct{       //estrutura do pacote
     int origin, dest, type;
     char content[MSG_SIZE];
 }Package;
 
-typedef struct{  //Estrutura das tabelas de roteamentos
-  int cost[N_ROT]; //custo
-  int path[N_ROT]; //caminho
+typedef struct{       //Estrutura das tabelas de roteamentos
+  int cost[N_ROT];    //custo
+  int path[N_ROT];    //caminho
 }Table;
 
-typedef struct{
+typedef struct{       //estrutura matriz djikstra
     int visit, cost, prev;
 }mat_djikstra;
