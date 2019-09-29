@@ -7,6 +7,8 @@ pthread_t receiver_thread, sender_thread;
 int router_socket, id_router;
 struct sockaddr_in si_me, si_other;
 
+int qtd_message = 0;
+
 void die(char *s){ //função que retorna os erros que aconteçam na execução e encerra
 	perror(s);
 	exit(1);
@@ -111,7 +113,8 @@ void create_router(){ //função que cria os sockets para os roteadores
 }
 
 void create_message(){
-	int destination;
+	int destination, next;
+	Package msg_out; 
 
 	do{ //verificação do roteador destino
 	printf("Digite o roteador destino:\n");
@@ -119,6 +122,21 @@ void create_message(){
 	if(destination < 0 || destination >= N_ROT)
 		printf("O numero do roteador informado não existe. Por favor digite novamente!\n");
 	}while(destination < 0 || destination >= N_ROT);
+
+	printf("Digite a mensagem a ser enviada para o roteador %d:\n", destination);
+	getchar(); //limpar o buffer de algum lixo de memória
+	fgets(router[id_router].msg_out[qtd_message].content, MSG_SIZE, stdin);
+
+	router[id_router].msg_out[qtd_message].num_pack = qtd_message;
+	router[id_router].msg_out[qtd_message].origin = id_router;
+	router[id_router].msg_out[qtd_message].dest = destination;
+
+	next = router_table[id_router].path[destination];
+
+	msg_out = router[id_router].msg_out[qtd_message];
+	qtd_message++;
+
+	//send_message(next, msg_out);
 }
 
 void menu(){ //função menu
@@ -181,7 +199,7 @@ int main(int argc, char *argv[]){
 	int links_table[N_ROT][N_ROT];
 	mat_djikstra info[N_ROT];
 
-	pthread_create(&receiver_thread, NULL, receiver, NULL);
+	pthread_create(&receiver_thread, NULL, receiver, NULL); //terceiro parametro é a função que a thread ira rodar
 	pthread_create(&sender_thread, NULL, sender, NULL);
 
 	//faz uma comparação com o que veio de parametro no comando executável
