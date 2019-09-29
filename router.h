@@ -10,16 +10,16 @@
 #define N_ROT 6       //número de roteadores
 #define MSG_SIZE 100  //tamanho da mensagem
 
+typedef struct{       //estrutura do pacote
+    int origin, dest, type;
+    char content[MSG_SIZE];
+}Package;
+
 typedef struct router{//estrutura do roteador
      int id, port;
      Package msg_in, msg_out;
      char ip[32];
 }Router;
-
-typedef struct{       //estrutura do pacote
-    int origin, dest, type;
-    char content[MSG_SIZE];
-}Package;
 
 typedef struct{       //Estrutura das tabelas de roteamentos
   int cost[N_ROT];    //custo

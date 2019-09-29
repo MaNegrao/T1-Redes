@@ -44,23 +44,25 @@ int menor(mat_djikstra info[], int *para) {
     return menorIndice;
 }
 
-void dijkstra(int grafo[N_ROT][N_ROT], mat_djikstra info[], int vertice){
+void dijkstra(int graph[N_ROT][N_ROT], mat_djikstra info[], int vertex){
     // marcar vértice como visitado
-    info[vertice].visit = 1;
+    info[vertex].visit = 1;
 
-    //percorrer para registrar cost e vértice anterior
+    //percorrer para registrar custo e vértice anterior
     for(int i = 0; i < N_ROT; i++){
-        if((grafo[vertice][i] > 0) && (info[i].visit == 0) && (info[vertice].cost + grafo[vertice][i] < info[i].cost)){
-			info[i].cost = grafo[vertice][i] + info[vertice].cost;
-			router_table[i].cost[vertice] = info[i].cost;
-            info[i].prev = vertice;
+        if((graph[vertex][i] > 0) && (info[i].visit == 0) && (info[vertex].cost + graph[vertex][i] < info[i].cost)){
+			info[i].cost = graph[vertex][i] + info[vertex].cost;
+            info[i].prev = vertex;
         }
     }
 
     // repetir o processo para o menor filho não visitado
     int para = 0, prox = menor(info, &para);
-    if(!para) dijkstra(grafo, info, prox);
-}
+    
+	if(!para)
+		dijkstra(graph, info, prox);
+	
+}	
 
 /*
 void pathcost(mat_djikstra info[], int tab[N_ROT][N_ROT]){
@@ -112,6 +114,17 @@ void create_router(){ //função que cria os sockets para os roteadores
 		die("Erro ao conectar o socket a porta!\n");
 }
 
+void create_message(){
+	int destination;
+
+	do{ //verificação do roteador destino
+	printf("Digite o roteador destino:\n");
+	scanf("%d", &destination);
+	if(destination < 0 || destination >= N_ROT)
+		printf("O numero do roteador informado não existe. Por favor digite novamente!\n");
+	}while(destination < 0 || destination >= N_ROT);
+}
+
 void menu(){ //função menu
 		system("clear");
 		printf("\t\t┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n");
@@ -125,20 +138,9 @@ void menu(){ //função menu
 		printf("\t\t┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n\n\t\t  ");
 }
 
-void create_message(){
-	int destiny;
-
-	do{ //verificação do roteador destino
-	printf("Digite o roteador destino:\n");
-	scanf("%d", destiny);
-	if(destiny < 0 || destiny >= N_ROT)
-		printf("O numero do roteador informado não existe. Por favor digite novamente!\n");
-	}while(destiny < 0 || destiny >= N_ROT);
-}
-
 void *sender(void *data){ //função da thread sender
 	char buf[BUFLEN];
-	int id_destiny, op;
+	int op;
 	
 	memset((char *) &si_other, 0, sizeof(si_other));
 	si_other.sin_family = AF_INET;
@@ -154,7 +156,6 @@ void *sender(void *data){ //função da thread sender
 				break;
 			case 1: //enviar mensagem
 				create_message();
-				printf("joia\n");
 				sleep(1);
 				break;
 			case 2: //ver mensagens anteriores
@@ -173,6 +174,12 @@ void *receiver(void *data){ //função da thread receiver
 	}
 }
 
+void print(mat_djikstra info[], int indice){
+    if(info[indice].prev > 0){
+        print(info, info[indice].prev);
+    }
+    printf(" %d ", indice+1);
+}
 
 int main(int argc, char *argv[]){
 	int links_table[N_ROT][N_ROT];
@@ -197,14 +204,18 @@ int main(int argc, char *argv[]){
 	read_links(links_table); //função que lê do arquivo enlaces.config
 
 	inicializa_djikstra(info); // inicializa matriz djkistra
-	info[0].cost = 0;
-    dijkstra(links_table, info, 0); // algoritimo djikstra recursivo
+	info[id_router-1].cost = 0;
+    dijkstra(links_table, info, id_router-1); // algoritimo djikstra recursivo
 
-	for(int i = 0; i < N_ROT; i++){
-		for(int j = 0; j < N_ROT; j++){
-			printf("%d\n", router_table[i].cost[j]);
-		}
-	}
+	printf("\t┏━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━┓\n");
+    printf("\t┃ Vértice ┃ Anterior  ┃   Custo   ┃  Menor Caminho  ┃\n");
+    printf("\t┣━━━━━━━━━╋━━━━━━━━━━━╋━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━┫\n");
+    for(int i = 0; i < N_ROT; i++){
+        printf("\t┃    %d    ┃     %d     ┃ %5d     ┃", i +1, info[i].prev+1, info[i].cost);
+        print(info, i);
+        printf("\n");
+    }
+    printf("\t┗━━━━━━━━━┻━━━━━━━━━━━┻━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━┛\n");
 
 	exit(0);
 
