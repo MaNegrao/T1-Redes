@@ -160,7 +160,7 @@ void menu(){ //função menu
 		printf("\t\t┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n\n\t\t  ");
 }
 
-void *sender(void *data){ //função da thread sender
+void *sender(void *data){ //função da thread sender - transmissor
 	char buf[BUFLEN];
 	int op;
 	
