@@ -12,7 +12,20 @@ void die(char *s){ //função que retorna os erros que aconteçam na execução 
 	exit(1);
 }
 
-void create_router(){
+void read_links(int tab[N_ROT][N_ROT]){ //função que lê os enlaces
+  int x, y, cost;
+  FILE *file = fopen("enlaces.config", "r");
+
+  if (file){
+    for (int i = 0; fscanf(file, "%d %d %d", &x, &y, &cost) != EOF; i++){
+      tab[x][y] = cost;
+      tab[y][x] = cost;
+    }
+    fclose(file);
+  }
+} 
+
+void create_router(){ //função que cria os sockets para os roteadores
 	FILE *config_file = fopen("roteadores.config", "r");
 
 	if(!config_file)
@@ -24,7 +37,7 @@ void create_router(){
 	printf("\t┏━━━━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n");
     printf("\t┃ ID Roteador ┃   Porta   ┃           Endereço de IP           ┃\n");
 	printf("\t┣━━━━━━━━━━━━━╋━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫\n");
-	printf("\t┃     %2d      ┃  %6d   ┃  %32s  ┃\n", router[id_router-1].id,  router[id_router-1].port,  router[id_router-1].ip);
+	printf("\t┃     %02d      ┃  %6d   ┃  %32s  ┃\n", router[id_router-1].id,  router[id_router-1].port,  router[id_router-1].ip);
 	printf("\t┗━━━━━━━━━━━━━┻━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n");
 
 	if((router_socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1)
@@ -83,19 +96,6 @@ void *receiver(void *data){
 	while(1){
 
 	}
-}
-
-void read_links(int tab[N_ROT][N_ROT]){
-  int x, y, cost;
-  FILE *file = fopen("enlaces.config", "r");
-
-  if (file){
-    for (int i = 0; fscanf(file, "%d %d %d", &x, &y, &cost) != EOF; i++){
-      tab[x][y] = cost;
-      tab[y][x] = cost;
-    }
-    fclose(file);
-  }
 }
 
 int main(int argc, char *argv[]){
