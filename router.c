@@ -1,7 +1,7 @@
 #include "router.h"
 
 Router router[N_ROT];
-Table router_table[N_ROT];
+Table router_table;
 
 pthread_t receiver_thread, sender_thread;
 int router_socket, id_router;
@@ -61,17 +61,13 @@ void dijkstra(int graph[N_ROT][N_ROT], mat_djikstra info[], int vertex){
     
 	if(!para)
 		dijkstra(graph, info, prox);
-	
 }	
 
-/*
 void pathcost(mat_djikstra info[], int tab[N_ROT][N_ROT]){
 	for(int i = 0; i < N_ROT; i++){
-		for(int j = 0; j < N_ROT; j++){
-			router_table[i].cost[j] = info[i].cost;
-		}
+		router_table.cost[i] = info[i].cost;
 	}
-}*/
+}
 
 void read_links(int tab[N_ROT][N_ROT]){ //função que lê os enlaces
   int x, y, cost;
@@ -206,16 +202,24 @@ int main(int argc, char *argv[]){
 	inicializa_djikstra(info); // inicializa matriz djkistra
 	info[id_router-1].cost = 0;
     dijkstra(links_table, info, id_router-1); // algoritimo djikstra recursivo
+	pathcost(info, links_table);
 
-	printf("\t┏━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━┓\n");
-    printf("\t┃ Vértice ┃ Anterior  ┃   Custo   ┃  Menor Caminho  ┃\n");
-    printf("\t┣━━━━━━━━━╋━━━━━━━━━━━╋━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━┫\n");
-    for(int i = 0; i < N_ROT; i++){
-        printf("\t┃    %d    ┃     %d     ┃ %5d     ┃", i +1, info[i].prev+1, info[i].cost);
-        print(info, i);
-        printf("\n");
-    }
-    printf("\t┗━━━━━━━━━┻━━━━━━━━━━━┻━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━┛\n");
+	for(int i = 0; i < N_ROT; i++){
+		for(int j = 0; j < N_ROT; j++){
+			printf("%d ", router_table.cost[j]);
+		}
+		printf("\n");
+	}
+
+	// printf("\t┏━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━┓\n");
+    // printf("\t┃ Vértice ┃ Anterior  ┃   Custo   ┃  Menor Caminho  ┃\n");
+    // printf("\t┣━━━━━━━━━╋━━━━━━━━━━━╋━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━┫\n");
+    // for(int i = 0; i < N_ROT; i++){
+    //     printf("\t┃    %d    ┃     %d     ┃ %5d     ┃", i +1, info[i].prev+1, info[i].cost);
+    //     print(info, i);
+    //     printf("\n");
+    // }
+    // printf("\t┗━━━━━━━━━┻━━━━━━━━━━━┻━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━┛\n");
 
 	exit(0);
 
