@@ -4,6 +4,7 @@ Router router[N_ROT];
 
 pthread_t receiver_thread, sender_thread;
 int router_socket, id_router;
+struct sockaddr_in si_me, si_other;
 
 void die(char *s){ //função que retorna os erros que aconteçam na execução e a encerra
 	perror(s);
@@ -16,17 +17,26 @@ void create_router(){
 	if(!config_file)
 		die("Não foi possivel abrir o arquvio de configuração dos roteadores!\n");
 
-	for (int i = 0; fscanf(config_file, "%d %d %s", &router[i].id, &router[i].port, &router[i].ip) != EOF; i++);
+	for (int i = 0; fscanf(config_file, "%d %d %s", &router[i].id, &router[i].port, router[i].ip) != EOF; i++);
 	fclose(config_file);
 
-	printf("\t┏━━━━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━━━━━━┓\n");
-    printf("\t┃  Router ID  ┃   Port    ┃     IP      ┃\n");
-	printf("\t┣━━━━━━━━━━━━━╋━━━━━━━━━━━╋━━━━━━━━━━━━━┫\n");
-	printf("\t┃     %2d      ┃  %6d   ┃  %s  ┃\n", router[id_router-1].id,  router[id_router-1].port,  router[id_router-1].ip);
-	printf("\t┗━━━━━━━━━━━━━┻━━━━━━━━━━━┻━━━━━━━━━━━━━┛\n");
+	printf("\t┏━━━━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n");
+    printf("\t┃ ID Roteador ┃   Porta   ┃           Endereço de IP           ┃\n");
+	printf("\t┣━━━━━━━━━━━━━╋━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫\n");
+	printf("\t┃     %2d      ┃  %6d   ┃  %32s  ┃\n", router[id_router-1].id,  router[id_router-1].port,  router[id_router-1].ip);
+	printf("\t┗━━━━━━━━━━━━━┻━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n");
 
+	if((router_socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1)
+		die("Erro ao criar socket!\n");
 
+	memset((char *) &si_me, 0, sizeof(si_me));
+	
+	si_me.sin_family = AF_INET;
+	si_me.sin_port = htons(router[id_router-1].port);
+	si_me.sin_addr.s_addr = htonl(INADDR_ANY);
 
+	if(bind(router_socket, (struct sockaddr *) &si_me, sizeof(si_me)) == -1)
+		die("Erro ao conectar o socket a porta!\n");
 }
 
 void menu(){ //apenas uma função de menu
@@ -46,6 +56,7 @@ void *sender(void *data){ //função da thread sender
 	char buf[BUFLEN];
 	int id_destiny, op;
 
+	sleep(3);
 	while(1){
 		menu();
 		scanf("%d", &op);
@@ -94,10 +105,12 @@ int main(int argc, char *argv[]){
 
 	create_router();
 
+	sleep(2);
+
 	pthread_create(&receiver_thread, NULL, receiver, NULL);
 	pthread_create(&sender_thread, NULL, sender, NULL);
 
-	//pthread_join(sender_thread, NULL);
+	pthread_join(sender_thread, NULL);
 
 
 	return 0;
