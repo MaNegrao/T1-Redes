@@ -137,8 +137,10 @@ void create_message(){
 
 	next = router_table[id_router].path[destination];
 
+	msg_out = router[id_router].msg_out[qtd_message];
+	qtd_message++;
 
-
+	//send_message(next, msg_out);
 }
 
 void menu(){ //função menu
