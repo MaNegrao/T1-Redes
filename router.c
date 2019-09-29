@@ -12,14 +12,63 @@ void die(char *s){ //função que retorna os erros que aconteçam na execução 
 	exit(1);
 }
 
+void inicializa_djikstra(mat_djikstra info[]) {
+    for (int i = 0; i < N_ROT; i++) {
+        info[i].visit = 0;
+        info[i].custo = 10000;
+        info[i].ant = -1;
+    }
+}
+
+int menor(mat_djikstra info[], int *para) {
+    int menorIndice, i, menorCusto = 1000;
+
+    for(i = 0; i < N_ROT; i++){ 
+        if(info[i].visit == 0){ 
+            break;
+        }
+    }    
+
+    if(i == N_ROT){
+        *para = 1;
+        return 0;
+    }
+
+    for(i = 0; i < N_ROT; i++){
+        if((info[i].custo < menorCusto) && (info[i].visit == 0)){
+            menorCusto = info[i].custo;
+            menorIndice = i;
+        }
+    }
+
+    return menorIndice;
+}
+
+void dijkstra(int grafo[N_ROT][N_ROT], mat_djikstra info[], int vertice){
+    // marcar vértice como visitado
+    info[vertice].visit = 1;
+
+    //percorrer para registrar custo e vértice anterior
+    for(int i = 0; i < N_ROT; i++){
+        if((grafo[vertice][i] > 0) && (info[i].visit == 0) && (info[vertice].custo + grafo[vertice][i] < info[i].custo)){
+			info[i].custo = grafo[vertice][i] + info[vertice].custo;
+            info[i].ant = vertice;
+        }
+    }
+
+    // repetir o processo para o menor filho não visitado
+    int para = 0, prox = menor(info, &para);
+    if(!para) dijkstra(grafo, info, prox);
+}
+
 void read_links(int tab[N_ROT][N_ROT]){ //função que lê os enlaces
   int x, y, cost;
   FILE *file = fopen("enlaces.config", "r");
 
   if (file){
     for (int i = 0; fscanf(file, "%d %d %d", &x, &y, &cost) != EOF; i++){
-      tab[x][y] = cost;
-      tab[y][x] = cost;
+	  tab[x-1][y-1] = cost;
+      tab[y-1][x-1] = cost;
     }
     fclose(file);
   }
@@ -69,8 +118,12 @@ void menu(){ //apenas uma função de menu
 void *sender(void *data){ //função da thread sender
 	char buf[BUFLEN];
 	int id_destiny, op;
+	
+	memset((char *) &si_other, 0, sizeof(si_other));
+	si_other.sin_family = AF_INET;
+	si_other.sin_addr.s_addr =  htonl(INADDR_ANY);
 
-	sleep(3);
+	sleep(2);
 	while(1){
 		menu();
 		scanf("%d", &op);
@@ -94,12 +147,17 @@ void *sender(void *data){ //função da thread sender
 void *receiver(void *data){
 	
 	while(1){
-
+		break;
 	}
 }
 
+
 int main(int argc, char *argv[]){
-	int links_table[N_ROT][N_ROT];
+	int links_table[N_ROT][N_ROT], aux;
+	mat_djikstra info[N_ROT];
+
+	pthread_create(&receiver_thread, NULL, receiver, NULL);
+	pthread_create(&sender_thread, NULL, sender, NULL);
 
 	//faz uma comparação com o que veio de parametro no comando executável
 	if(argc < 2)
@@ -117,14 +175,17 @@ int main(int argc, char *argv[]){
 
 	read_links(links_table); //função que lê do arquivo enlaces.config
 
+	inicializa_djikstra(info);
+	info[0].custo = 0;
+    dijkstra(links_table, info, 0);
+
+
+	aux = 0;
+
 	create_router(); //função que lê e cria os roteadores do arquivo roteadores.config
 
-	sleep(2);
-
-	pthread_create(&receiver_thread, NULL, receiver, NULL);
-	pthread_create(&sender_thread, NULL, sender, NULL);
-
 	pthread_join(sender_thread, NULL);
+	pthread_join(receiver_thread, NULL);
 
 
 	return 0;

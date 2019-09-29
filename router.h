@@ -24,3 +24,7 @@ typedef struct{  //Estrutura das tabelas de roteamentos
   int cost[N_ROT]; //custo
   int path[N_ROT]; //caminho
 }Table;
+
+typedef struct{
+    int visit, custo, ant;
+}mat_djikstra;
