@@ -129,6 +129,10 @@ void create_message(){
 	printf("Digite a mensagem a ser enviada para o roteador %d:\n", destination);
 	getchar(); //limpar o buffer de algum lixo de memória
 	fgets(router[id_router].msg_out[qtd_message].content, MSG_SIZE, stdin);
+
+	router[id_router].msg_out[qtd_message].num_pack = qtd_message;
+	router[id_router].msg_out[qtd_message].origin = id_router;
+	router[id_router].msg_out[qtd_message].dest = destination;
 }
 
 void menu(){ //função menu
