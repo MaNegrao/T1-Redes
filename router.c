@@ -88,7 +88,7 @@ void create_router(){ //função que cria os sockets para os roteadores
 	printf("\t┏━━━━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n");
     printf("\t┃ ID Roteador ┃   Porta   ┃           Endereço de IP           ┃\n");
 	printf("\t┣━━━━━━━━━━━━━╋━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫\n");
-	printf("\t┃     %02d      ┃  %6d   ┃  %32s  ┃\n", router[id_router-1].id,  router[id_router-1].port,  router[id_router-1].ip);
+	printf("\t┃     %02d      ┃  %6d   ┃  %32s  ┃\n", router[id_router].id,  router[id_router].port,  router[id_router].ip);
 	printf("\t┗━━━━━━━━━━━━━┻━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n");
 
 	if((router_socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1)
@@ -97,7 +97,7 @@ void create_router(){ //função que cria os sockets para os roteadores
 	memset((char *) &si_me, 0, sizeof(si_me));
 	
 	si_me.sin_family = AF_INET;
-	si_me.sin_port = htons(router[id_router-1].port);
+	si_me.sin_port = htons(router[id_router].port);
 	si_me.sin_addr.s_addr = htonl(INADDR_ANY);
 
 	if(bind(router_socket, (struct sockaddr *) &si_me, sizeof(si_me)) == -1)
@@ -134,7 +134,7 @@ void create_message(){
 void menu(){ //função menu
 		system("clear");
 		printf("\t\t┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n");
-		printf("\t\t┃           Roteador %02d           ┃\n", id_router);
+		printf("\t\t┃           Roteador %02d           ┃\n", id_router+1);
 		printf("\t\t┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫\n");
 		printf("\t\t┃ ➊ ─ Enviar mensagem             ┃\n");
 		printf("\t\t┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫\n");
@@ -182,7 +182,7 @@ void *receiver(void *data){ //função da thread receiver
 
 void define_path(mat_dijkstra dijkstra_info[], int indice, int position){
 	if(dijkstra_info[indice].prev > -1){	
-		if(dijkstra_info[indice].prev == id_router-1){
+		if(dijkstra_info[indice].prev == id_router){
 			router_table.path[position] = indice;	
 			return;	
 		}
@@ -191,34 +191,31 @@ void define_path(mat_dijkstra dijkstra_info[], int indice, int position){
 	if(dijkstra_info[indice].prev == -1){
 		router_table.path[position] = position;
 	}
-
-	
-
-
-
-    // printf(" %d ", indice+1);
-
-
-	// for(int i = 0; i < N_ROT; i++){
-	// 	if(dijkstra_info[id_router-1].prev == id_router-1)
-	// 		router_table.path[id_router-1] = -1;
-	// 	else{
-	// 		router_table.path[id_router-1] = dijkstra_info[id_router-1].prev;
-	// 	}
-	// }
 }
 
-void pathcost(mat_dijkstra dijkstra_info[], int tab[N_ROT][N_ROT]){
+void pathcost(int tab[N_ROT][N_ROT]){
 	for(int i = 0; i < N_ROT; i++){
-		router_table.cost[i] = tab[id_router-1][i];
+		router_table.cost[i] = tab[id_router][router_table.path[i]];
 	}
 }
 
-void print_dijkstra(mat_dijkstra dijkstra_info[], int indice){
-    if(dijkstra_info[indice].prev > 0){
-        print_dijkstra(dijkstra_info, dijkstra_info[indice].prev);
+void print_dijkstra_line(mat_dijkstra dijkstra_info[], int indice){
+	if(dijkstra_info[indice].prev > -1){
+        print_dijkstra_line(dijkstra_info, dijkstra_info[indice].prev);
     }
     printf(" %d ", indice+1);
+}
+
+void print_dijkstra(mat_dijkstra dijkstra_info[]){
+	printf("\t┏━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━┓\n");
+    printf("\t┃ Vértice ┃ Anterior  ┃   Custo   ┃  Menor Caminho  ┃\n");
+    printf("\t┣━━━━━━━━━╋━━━━━━━━━━━╋━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━┛\n");
+    for(int i = 0; i < N_ROT; i++){
+        printf("\t┃    %d    ┃     %d     ┃ %5d     ┃", i +1, dijkstra_info[i].prev+1, dijkstra_info[i].cost);
+        print_dijkstra_line(dijkstra_info, i);
+        printf("\n");
+    }
+    printf("\t┗━━━━━━━━━┻━━━━━━━━━━━┻━━━━━━━━━━━┛\n\n");
 }
 
 int main(int argc, char *argv[]){
@@ -234,41 +231,24 @@ int main(int argc, char *argv[]){
 	else if(argc > 2)		
 		die("Digite apenas um ID para o roteador!\n");
 
-	id_router = strtol(argv[1], NULL, 10); //função de casting do argv id para int 
-	if(id_router > N_ROT){
+	id_router = strtol(argv[1], NULL, 10) - 1; //função de casting do argv id para int 
+	
+	if(id_router >= N_ROT)
 		die("ID do roteador inválido!\n");
-	}
 
 	memset(links_table, -1, sizeof(int) * N_ROT * N_ROT); //limpa a tabela router
 
 	read_links(links_table); //função que lê do arquivo enlaces.config
 
 	inicializa_dijkstra(dijkstra_info); // inicializa matriz djkistra
-	dijkstra_info[id_router-1].cost = 0;
-    dijkstra(links_table, dijkstra_info, id_router-1); // algoritimo dijkstra recursivo
+	dijkstra_info[id_router].cost = 0;
+    dijkstra(links_table, dijkstra_info, id_router); // algoritimo dijkstra recursivo
 	
-	for(int i = 0; i < N_ROT; i++){
+	for(int i = 0; i < N_ROT; i++)
 		define_path(dijkstra_info, i, i);
-	}
+	pathcost(links_table);
 
-	pathcost(dijkstra_info, links_table);
-
-	for(int i = 0; i < N_ROT; i++){
-		printf("%d ", router_table.path[i]);
-	}
-	printf("\n");
-
-	printf("\t┏━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━┓\n");
-    printf("\t┃ Vértice ┃ Anterior  ┃   Custo   ┃  Menor Caminho  ┃\n");
-    printf("\t┣━━━━━━━━━╋━━━━━━━━━━━╋━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━┫\n");
-    for(int i = 0; i < N_ROT; i++){
-        printf("\t┃    %d    ┃     %d     ┃ %5d     ┃", i +1, dijkstra_info[i].prev+1, dijkstra_info[i].cost);
-        print_dijkstra(dijkstra_info, i);
-        printf("\n");
-    }
-    printf("\t┗━━━━━━━━━┻━━━━━━━━━━━┻━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━┛\n");
-
-	exit(0);
+	print_dijkstra(dijkstra_info);
 
 	create_router(); //função que lê e cria os roteadores do arquivo roteadores.config
 
