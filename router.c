@@ -263,9 +263,6 @@ int main(int argc, char *argv[]){
 	int links_table[N_ROT][N_ROT];
 	mat_dijkstra dijkstra_info[N_ROT];
 
-	pthread_create(&receiver_thread, NULL, receiver, NULL); //terceiro parametro é a função que a thread ira rodar
-	pthread_create(&sender_thread, NULL, sender, NULL);
-
 	//faz uma comparação com o que veio de parametro no comando executável
 	if(argc < 2)
 		die("Digite o ID do roteador!\n");
@@ -293,8 +290,11 @@ int main(int argc, char *argv[]){
 
 	create_router(); //função que lê e cria os roteadores do arquivo roteadores.config
 
-	pthread_join(sender_thread, NULL);
+	pthread_create(&receiver_thread, NULL, receiver, NULL); //terceiro parametro é a função que a thread ira rodar
+	pthread_create(&sender_thread, NULL, sender, NULL);
+
 	pthread_join(receiver_thread, NULL);
+	pthread_join(sender_thread, NULL);
 
 	return 0;
 }
