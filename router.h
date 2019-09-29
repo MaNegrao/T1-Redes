@@ -11,7 +11,8 @@
 #define MSG_SIZE 100  //tamanho da mensagem
 
 typedef struct router{//estrutura do roteador
-     int id, port, msg_in, msg_out;
+     int id, port;
+     Package msg_in, msg_out;
      char ip[32];
 }Router;
 
