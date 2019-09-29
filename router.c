@@ -125,6 +125,17 @@ void menu(){ //função menu
 		printf("\t\t┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n\n\t\t  ");
 }
 
+void create_message(){
+	int destiny;
+
+	do{ //verificação do roteador destino
+	printf("Digite o roteador destino:\n");
+	scanf("%d", destiny);
+	if(destiny < 0 || destiny >= N_ROT)
+		printf("O numero do roteador informado não existe. Por favor digite novamente!\n");
+	}while(destiny < 0 || destiny >= N_ROT);
+}
+
 void *sender(void *data){ //função da thread sender
 	char buf[BUFLEN];
 	int id_destiny, op;
@@ -142,6 +153,7 @@ void *sender(void *data){ //função da thread sender
 				exit(0);
 				break;
 			case 1: //enviar mensagem
+				create_message();
 				printf("joia\n");
 				sleep(1);
 				break;
