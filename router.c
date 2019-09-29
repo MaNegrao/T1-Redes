@@ -105,7 +105,7 @@ void create_router(){ //função que cria os sockets para os roteadores
 }
 
 void send_message(int next_id, Package msg_out){//função que enviar mensagem
-	printf("Enviando pacote para o roteador de ID %d\n", next_id);
+	printf("Enviando pacote para o roteador de ID %d\n", next_id+1);
 	sleep(1);
 
 	si_other.sin_port = htons(router[next_id].port); //enviando para o socket
@@ -116,7 +116,7 @@ void send_message(int next_id, Package msg_out){//função que enviar mensagem
 		if(sendto(router_socket, &msg_out, sizeof(msg_out), 0, (struct sockaddr*) &si_other, sizeof(si_other)) == -1)
 			die("Erro ao enviar a mensagem!\n");
 		else
-			printf("O roteador %d está enviando a mensagem de numero %d para o roteador de ID %d\n", id_router, msg_out.num_pack, next_id);		
+			printf("O roteador %d está enviando a mensagem de numero %d para o roteador de ID %d\n", msg_out.origin+1, msg_out.num_pack+1, msg_out.dest+1);		
 	}
 }
 
@@ -125,13 +125,14 @@ void create_message(){//função cria mensagem
 	Package msg_out; 
 
 	do{ //verificação do roteador destino
-	printf("Digite o roteador destino:\n");
-	scanf("%d", &destination);
-	if(destination < 0 || destination >= N_ROT)
-		printf("O numero do roteadorrmado não existe. Por favor digite novamente!\n");
+		printf("Digite o roteador destino:\n");
+		scanf("%d", &destination);
+		destination = destination - 1;
+		if(destination < 0 || destination >= N_ROT)
+			printf("O numero do roteador informado não existe. Por favor digite novamente!\n");
 	}while(destination < 0 || destination >= N_ROT);
 
-	printf("Digite a mensagem a ser enviada para o roteador %d:\n", destination);
+	printf("Digite a mensagem a ser enviada para o roteador %d:\n", destination+1);
 	__fpurge(stdin); //limpar o buffer de algum lixo de memória
 	fgets(router[id_router].msg_out[qtd_message].content, MSG_SIZE, stdin);
 
@@ -203,7 +204,7 @@ void *receiver(void *data){ //função da thread receiver
 		}
 		else{
 			if(message_in.dest == id_router){
-				printf("Mensagem recebida do roteador %d!\n", message_in.origin);
+				printf("Mensagem recebida do roteador %d!\n", message_in.origin+1);
 				printf("Mensagem: %100s\n", message_in.content);
 				strcpy(router[id_router].msg_in[qtd_message_in].content, message_in.content);
 				router[id_router].msg_in[qtd_message_in].num_pack = message_in.num_pack;
@@ -213,7 +214,7 @@ void *receiver(void *data){ //função da thread receiver
 			else{
 				message_out = message_in;
 				next = router_table.path[message_out.dest];
-				printf("Retransmitindo de %d para %d\n", id_router, next);
+				printf("Retransmitindo de %d para %d\n", id_router+1, next+1);
 
 				send_message(next, message_out);
 			}
