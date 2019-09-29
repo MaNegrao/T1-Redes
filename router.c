@@ -43,7 +43,7 @@ void create_router(){
 void menu(){ //apenas uma função de menu
 		system("clear");
 		printf("\t\t┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n");
-		printf("\t\t┃            Router %2d            ┃\n", id_router);
+		printf("\t\t┃           Roteador %02d           ┃\n", id_router);
 		printf("\t\t┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫\n");
 		printf("\t\t┃ ➊ ─ Enviar mensagem             ┃\n");
 		printf("\t\t┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫\n");
@@ -85,22 +85,21 @@ void *receiver(void *data){
 	}
 }
 
-void carrega_enlaces(int tab[N_ROT][N_ROT]){
-  int x, y, peso;
+void read_links(int tab[N_ROT][N_ROT]){
+  int x, y, cost;
   FILE *file = fopen("enlaces.config", "r");
 
   if (file){
-    for (int i = 0; fscanf(file, "%d %d %d", &x, &y, &peso) != EOF; i++){
-      tab[x][y] = peso;
-      tab[y][x] = peso;
+    for (int i = 0; fscanf(file, "%d %d %d", &x, &y, &cost) != EOF; i++){
+      tab[x][y] = cost;
+      tab[y][x] = cost;
     }
     fclose(file);
   }
 }
 
 int main(int argc, char *argv[]){
-	int router_table[N_ROT][N_ROT];
-	int tabela_enlaces[N_ROT][N_ROT];
+	int links_table[N_ROT][N_ROT];
 
 	//faz uma comparação com o que veio de parametro no comando executável
 	if(argc < 2)
@@ -114,13 +113,11 @@ int main(int argc, char *argv[]){
 
 	id_router = strtol(argv[1], NULL, 10); //função de casting do argv id para int 
 
-	memset(router_table, -1, sizeof(int) * N_ROT * N_ROT); //limpa a tabela router
+	memset(links_table, -1, sizeof(int) * N_ROT * N_ROT); //limpa a tabela router
 
-	memset(tabela_enlaces, -1, sizeof(int) * N_ROT * N_ROT); //limpa a tabela dos enlaces
+	read_links(links_table); //função que lê do arquivo enlaces.config
 
-	carrega_enlaces(tabela_enlaces); //função que lê do arquivo enlaces.config
-
-	create_router();
+	create_router(); //função que lê e cria os roteadores do arquivo roteadores.config
 
 	sleep(2);
 
