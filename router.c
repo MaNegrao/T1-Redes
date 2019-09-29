@@ -1,6 +1,7 @@
 #include "router.h"
 
 Router router[N_ROT];
+Table tabela_enl[N_ROT];
 
 pthread_t receiver_thread, sender_thread;
 int router_socket, id_router;
@@ -84,9 +85,22 @@ void *receiver(void *data){
 	}
 }
 
-//####################################### MAIN ##############################
+void carrega_enlaces(int tab[N_ROT][N_ROT]){
+  int x, y, peso;
+  FILE *file = fopen("enlaces.config", "r");
+
+  if (file){
+    for (int i = 0; fscanf(file, "%d %d %d", &x, &y, &peso) != EOF; i++){
+      tab[x][y] = peso;
+      tab[y][x] = peso;
+    }
+    fclose(file);
+  }
+}
+
 int main(int argc, char *argv[]){
 	int router_table[N_ROT][N_ROT];
+	int tabela_enlaces[N_ROT][N_ROT];
 
 	//faz uma comparação com o que veio de parametro no comando executável
 	if(argc < 2)
@@ -100,8 +114,11 @@ int main(int argc, char *argv[]){
 
 	id_router = strtol(argv[1], NULL, 10); //função de casting do argv id para int 
 
-	//limpa a tabela router
-	memset(router_table, -1, sizeof(int) * N_ROT * N_ROT);
+	memset(router_table, -1, sizeof(int) * N_ROT * N_ROT); //limpa a tabela router
+
+	memset(tabela_enlaces, -1, sizeof(int) * N_ROT * N_ROT); //limpa a tabela dos enlaces
+
+	carrega_enlaces(tabela_enlaces); //função que lê do arquivo enlaces.config
 
 	create_router();
 
