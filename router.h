@@ -11,16 +11,16 @@
 #define MSG_SIZE 100  //tamanho da mensagem
 #define QUEUE_SIZE 100//tamanho da fila dos roteadores
 
-typedef struct{       //estrutura do roteador
-     int id, port;
-     Package msg_in[QUEUE_SIZE], msg_out[QUEUE_SIZE]; //filas de entrada e saída
-     char ip[32];
-}Router;
-
 typedef struct{       //estrutura do pacote
     int origin, dest, type;
     char content[MSG_SIZE];
 }Package;
+
+typedef struct router{//estrutura do roteador
+     int id, port;
+     Package msg_in[QUEUE_SIZE], msg_out[QUEUE_SIZE]; //filas de entrada e saída
+     char ip[32];
+}Router;
 
 typedef struct{       //Estrutura das tabelas de roteamentos
   int cost[N_ROT];    //custo
