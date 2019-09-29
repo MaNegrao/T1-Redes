@@ -125,15 +125,22 @@ void menu(){ //função menu
 		printf("\t\t┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n\n\t\t  ");
 }
 
-void create_message(){
+void create_message(){ //função para verificar o IP destino e a mensagem
 	int destiny;
 
 	do{ //verificação do roteador destino
-	printf("Digite o roteador destino:\n");
-	scanf("%d", destiny);
-	if(destiny < 0 || destiny >= N_ROT)
-		printf("O numero do roteador informado não existe. Por favor digite novamente!\n");
+		printf("Digite o roteador destino:\n");
+		scanf("%d", destiny);
+		if(destiny < 0 || destiny >= N_ROT)
+			printf("O numero do roteador informado não existe. Por favor digite novamente!\n");
 	}while(destiny < 0 || destiny >= N_ROT);
+
+	printf("Digite a mensagem a ser enviada para o roteador %d:\n", destiny);
+	//getchar(); //leitura de um caracter
+	//fgets();
+
+	//fgets(router[id].message_out[message_control].content, MESSAGE_SIZE, stdin);
+
 }
 
 void *sender(void *data){ //função da thread sender

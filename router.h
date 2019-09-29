@@ -9,10 +9,11 @@
 #define BUFLEN 512    //tamanho máximo do buffer
 #define N_ROT 6       //número de roteadores
 #define MSG_SIZE 100  //tamanho da mensagem
+#define QUEUE_SIZE 100//tamanho da fila dos roteadores
 
-typedef struct router{//estrutura do roteador
+typedef struct{       //estrutura do roteador
      int id, port;
-     Package msg_in, msg_out;
+     Package msg_in[QUEUE_SIZE], msg_out[QUEUE_SIZE]; //filas de entrada e saída
      char ip[32];
 }Router;
 
