@@ -4,7 +4,7 @@ Router router[N_ROT];
 Table router_table;
 
 pthread_t receiver_thread, sender_thread;
-int router_socket, id_router, qtd_message = 0;
+int router_socket, id_router, qtd_message = 0, qtd_message_in = 0;
 struct sockaddr_in si_me, si_other;
 
 void die(char *s){ //função que retorna os erros que aconteçam na execução e encerra
@@ -174,9 +174,34 @@ void *sender(void *data){ //função da thread sender
 }
 
 void *receiver(void *data){ //função da thread receiver
-	
+	int slen = sizeof(si_other);
+	int next;
+
 	while(1){
-		break;
+		Package message_in = router[id_router].msg_in[qtd_message_in];
+		Package message_out = router[id_router].msg_out[qtd_message];
+
+		if((recvfrom(router_socket, &message_in, sizeof(message_in), 0, (struct sockaddr *) &si_me, &slen)) == -1){
+			printf("Erro ao receber mensagem!\n");
+			qtd_message_in--;
+		}
+		else{
+			if(message_in.dest == id_router){
+				printf("Mensagem recebida do roteador %d!\n", message_in.source);
+				printf("Mensagem: %100s\n", message_in.content);
+				strcpy(router[id_router].msg_in[qtd_message_in].content, message_in.content);
+				router[id_router].msg_in[qtd_message_in].num_pack = message_in.num_pack;
+				router[id_router].msg_in[qtd_message_in].origin = message_in.origin;
+				qtd_message_in++;
+			}
+			else{
+				message_out = message_in;
+				next = router_table.path[message_out.dest];
+				printf("Retransmitindo de %d para %d\n", id_router, next);
+
+				
+			}
+		}
 	}
 }
 
