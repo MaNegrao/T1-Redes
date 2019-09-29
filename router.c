@@ -131,7 +131,7 @@ void create_message(){//função cria mensagem
 	send_message(next_id, msg_out);
 }
 
-void send_message(int next_id, Package msg_out){
+void send_message(int next_id, Package msg_out){ //função envia mensagem
 	printf("Enviando pacote para o roteador de ID %d\n", next_id);
 	sleep(1);
 
@@ -160,7 +160,7 @@ void menu(){ //função menu
 		printf("\t\t┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n\n\t\t  ");
 }
 
-void *sender(void *data){ //função da thread sender
+void *sender(void *data){ //função da thread sender - transmissor
 	char buf[BUFLEN];
 	int op;
 	
@@ -189,7 +189,7 @@ void *sender(void *data){ //função da thread sender
 	}
 }
 
-void *receiver(void *data){ //função da thread receiver
+void *receiver(void *data){ //função da thread receiver - receptor
 	
 	while(1){
 		break;
