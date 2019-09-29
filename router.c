@@ -117,7 +117,8 @@ void create_router(){ //função que cria os sockets para os roteadores
 }
 
 void create_message(){
-	int destination;
+	int destination, next;
+	Package msg_out; 
 
 	do{ //verificação do roteador destino
 	printf("Digite o roteador destino:\n");
@@ -133,6 +134,11 @@ void create_message(){
 	router[id_router].msg_out[qtd_message].num_pack = qtd_message;
 	router[id_router].msg_out[qtd_message].origin = id_router;
 	router[id_router].msg_out[qtd_message].dest = destination;
+
+	next = router_table[id_router].path[destination];
+
+
+
 }
 
 void menu(){ //função menu
