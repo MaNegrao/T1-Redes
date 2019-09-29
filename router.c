@@ -105,7 +105,7 @@ void create_router(){ //função que cria os sockets para os roteadores
 }
 
 void create_message(){//função cria mensagem
-	int destination, next;
+	int destination, next_id;
 	Package msg_out; 
 
 	do{ //verificação do roteador destino
@@ -123,12 +123,28 @@ void create_message(){//função cria mensagem
 	router[id_router].msg_out[qtd_message].origin = id_router;
 	router[id_router].msg_out[qtd_message].dest = destination;
 
-	next = router_table.path[destination];
+	next_id = router_table.path[destination]; //quem vai receber a mensagem
 
 	msg_out = router[id_router].msg_out[qtd_message];
 	qtd_message++; //atualiza a quantidade de mensagem que foram enviadas
 
-	//send_message(next, msg_out);
+	send_message(next_id, msg_out);
+}
+
+void send_message(int next_id, Package msg_out){
+	printf("Enviando pacote para o roteador de ID %d\n", next_id);
+	sleep(1);
+
+	si_other.sin_port = htons(router[next_id].port); //enviando para o socket
+
+	if(inet_aton(router[next_id].ip, &si_other.sin_addr) == 0)
+		die("Erro ao tentar encontrar o IP destino\n");
+	else{
+		if(sendto(router_socket, &msg_out, sizeof(msg_out), 0, (struct sockaddr*) &si_other, sizeof(si_other)) == -1)
+			die("Erro ao enviar a mensagem!\n");
+		else
+			printf("O roteador %d está enviando a mensagem de numero %d para o roteador de ID %d\n", id_router, msg_out.num_pack, next_id);		
+	}
 }
 
 void menu(){ //função menu
