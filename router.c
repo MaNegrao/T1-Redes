@@ -104,7 +104,7 @@ void create_router(){ //função que cria os sockets para os roteadores
 		die("Erro ao conectar o socket a porta!\n");
 }
 
-void send_message(int next_id, Package msg_out){
+void send_message(int next_id, Package msg_out){//função que enviar mensagem
 	printf("Enviando pacote para o roteador de ID %d\n", next_id);
 	sleep(1);
 
@@ -132,7 +132,7 @@ void create_message(){//função cria mensagem
 	}while(destination < 0 || destination >= N_ROT);
 
 	printf("Digite a mensagem a ser enviada para o roteador %d:\n", destination);
-	getchar(); //limpar o buffer de algum lixo de memória
+	__fpurge(stdin); //limpar o buffer de algum lixo de memória
 	fgets(router[id_router].msg_out[qtd_message].content, MSG_SIZE, stdin);
 
 	router[id_router].msg_out[qtd_message].num_pack = qtd_message;
