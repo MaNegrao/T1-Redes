@@ -116,7 +116,7 @@ void create_router(){ //função que cria os sockets para os roteadores
 		die("Erro ao conectar o socket a porta!\n");
 }
 
-void create_message(){
+void create_message(){//função cria mensagem
 	int destination, next;
 	Package msg_out; 
 
@@ -135,10 +135,10 @@ void create_message(){
 	router[id_router].msg_out[qtd_message].origin = id_router;
 	router[id_router].msg_out[qtd_message].dest = destination;
 
-	next = router_table[id_router].path[destination];
+	next = router_table[id_router].path[destination]; //proximo roteador que vai receber o pacote
 
 	msg_out = router[id_router].msg_out[qtd_message];
-	qtd_message++;
+	qtd_message++; //atualiza a quantidade de mensagem que foram enviadas
 
 	//send_message(next, msg_out);
 }
