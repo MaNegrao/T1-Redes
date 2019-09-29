@@ -1,7 +1,7 @@
 #include "router.h"
 
 Router router[N_ROT];
-Table tabela_enl[N_ROT];
+Table router_table[N_ROT];
 
 pthread_t receiver_thread, sender_thread;
 int router_socket, id_router;
@@ -15,13 +15,13 @@ void die(char *s){ //função que retorna os erros que aconteçam na execução 
 void inicializa_djikstra(mat_djikstra info[]) {
     for (int i = 0; i < N_ROT; i++) {
         info[i].visit = 0;
-        info[i].custo = 10000;
-        info[i].ant = -1;
+        info[i].cost = 10000;
+        info[i].prev = -1;
     }
 }
 
 int menor(mat_djikstra info[], int *para) {
-    int menorIndice, i, menorCusto = 1000;
+    int menorIndice, i, menorcost = 1000;
 
     for(i = 0; i < N_ROT; i++){ 
         if(info[i].visit == 0){ 
@@ -35,8 +35,8 @@ int menor(mat_djikstra info[], int *para) {
     }
 
     for(i = 0; i < N_ROT; i++){
-        if((info[i].custo < menorCusto) && (info[i].visit == 0)){
-            menorCusto = info[i].custo;
+        if((info[i].cost < menorcost) && (info[i].visit == 0)){
+            menorcost = info[i].cost;
             menorIndice = i;
         }
     }
@@ -48,11 +48,12 @@ void dijkstra(int grafo[N_ROT][N_ROT], mat_djikstra info[], int vertice){
     // marcar vértice como visitado
     info[vertice].visit = 1;
 
-    //percorrer para registrar custo e vértice anterior
+    //percorrer para registrar cost e vértice anterior
     for(int i = 0; i < N_ROT; i++){
-        if((grafo[vertice][i] > 0) && (info[i].visit == 0) && (info[vertice].custo + grafo[vertice][i] < info[i].custo)){
-			info[i].custo = grafo[vertice][i] + info[vertice].custo;
-            info[i].ant = vertice;
+        if((grafo[vertice][i] > 0) && (info[i].visit == 0) && (info[vertice].cost + grafo[vertice][i] < info[i].cost)){
+			info[i].cost = grafo[vertice][i] + info[vertice].cost;
+			router_table[i].cost[vertice] = info[i].cost;
+            info[i].prev = vertice;
         }
     }
 
@@ -60,6 +61,15 @@ void dijkstra(int grafo[N_ROT][N_ROT], mat_djikstra info[], int vertice){
     int para = 0, prox = menor(info, &para);
     if(!para) dijkstra(grafo, info, prox);
 }
+
+/*
+void pathcost(mat_djikstra info[], int tab[N_ROT][N_ROT]){
+	for(int i = 0; i < N_ROT; i++){
+		for(int j = 0; j < N_ROT; j++){
+			router_table[i].cost[j] = info[i].cost;
+		}
+	}
+}*/
 
 void read_links(int tab[N_ROT][N_ROT]){ //função que lê os enlaces
   int x, y, cost;
@@ -153,7 +163,7 @@ void *receiver(void *data){
 
 
 int main(int argc, char *argv[]){
-	int links_table[N_ROT][N_ROT], aux;
+	int links_table[N_ROT][N_ROT];
 	mat_djikstra info[N_ROT];
 
 	pthread_create(&receiver_thread, NULL, receiver, NULL);
@@ -165,22 +175,26 @@ int main(int argc, char *argv[]){
 	else if(argc > 2)		
 		die("Digite apenas um ID para o roteador!\n");
 
+	id_router = strtol(argv[1], NULL, 10); //função de casting do argv id para int 
 	if(id_router >= N_ROT){
 		die("ID do roteador inválido!\n");
 	}
-
-	id_router = strtol(argv[1], NULL, 10); //função de casting do argv id para int 
 
 	memset(links_table, -1, sizeof(int) * N_ROT * N_ROT); //limpa a tabela router
 
 	read_links(links_table); //função que lê do arquivo enlaces.config
 
-	inicializa_djikstra(info);
-	info[0].custo = 0;
-    dijkstra(links_table, info, 0);
+	inicializa_djikstra(info); // inicializa matriz djkistra
+	info[0].cost = 0;
+    dijkstra(links_table, info, 0); // algoritimo djikstra recursivo
 
+	for(int i = 0; i < N_ROT; i++){
+		for(int j = 0; j < N_ROT; j++){
+			printf("%d\n", router_table[i].cost[j]);
+		}
+	}
 
-	aux = 0;
+	exit(0);
 
 	create_router(); //função que lê e cria os roteadores do arquivo roteadores.config
 

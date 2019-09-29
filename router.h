@@ -26,5 +26,5 @@ typedef struct{  //Estrutura das tabelas de roteamentos
 }Table;
 
 typedef struct{
-    int visit, custo, ant;
+    int visit, cost, prev;
 }mat_djikstra;
