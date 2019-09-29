@@ -30,4 +30,4 @@ typedef struct{       //Estrutura das tabelas de roteamentos
 
 typedef struct{       //estrutura matriz djikstra
     int visit, cost, prev;
-}mat_djikstra;
+}mat_dijkstra;
