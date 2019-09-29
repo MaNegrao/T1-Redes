@@ -13,7 +13,7 @@
 
 typedef struct{       //estrutura do pacote
     int origin, dest, type;
-    char content[MSG_SIZE];
+    char content[MSG_SIZE]; //conteudo da mensagem
 }Package;
 
 typedef struct router{//estrutura do roteador
