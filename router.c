@@ -104,6 +104,13 @@ void create_router(){ //função que cria os sockets para os roteadores
 		die("Erro ao conectar o socket a porta!\n");
 }
 
+void show_messages(){
+	for(int i = 0; i < qtd_message_in; i++){
+		printf("Mensagem #%d recebida de %d\n", router[id_router].msg_in[i].num_pack, router[id_router].msg_in[i].origin+1);
+		printf(" --- %s", router[id_router].msg_in[i].content);
+	}
+}
+
 void send_message(int next_id, Package msg_out){//função que enviar mensagem
 	printf("Enviando pacote para o roteador de ID %d\n", next_id+1);
 	sleep(1);
@@ -182,6 +189,7 @@ void *sender(void *data){ //função da thread sender - transmissor
 				sleep(1);
 				break;
 			case 2: //ver mensagens anteriores
+				show_messages();
 				break;
 			default:
 				printf("Opção inválida!\n");
