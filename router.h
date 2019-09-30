@@ -7,7 +7,7 @@
 #include<sys/socket.h>
 #include<pthread.h>
 
-#define TIMEOUT_MAX 5    //tempo maximo timeout
+#define TIMEOUT_MAX 10    //tempo maximo timeout
 #define TIMEOUT_MS 100
 #define N_ROT 6       //número de roteadores
 #define MSG_SIZE 100  //tamanho da mensagem

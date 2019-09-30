@@ -80,19 +80,22 @@ void create_router(){ //função que cria os sockets para os roteadores
 	FILE *config_file = fopen("roteadores.config", "r");
 
 	if(!config_file)
-		die("Não foi possivel abrir o arquvio de configuração dos roteadores!\n");
+		die("\tNão foi possivel abrir o arquvio de configuração dos roteadores! ");
 
 	for (int i = 0; fscanf(config_file, "%d %d %s", &router[i].id, &router[i].port, router[i].ip) != EOF; i++);
 	fclose(config_file);
 
-	printf("\t┏━━━━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n");
-    printf("\t┃ ID Roteador ┃   Porta   ┃           Endereço de IP           ┃\n");
+	printf("\t┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n");
+	printf("\t┃                  Informações do Roteador %02d                  ┃\n", id_router+1);
+	printf("\t┣━━━━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫\n");    
+	printf("\t┃ ID Roteador ┃   Porta   ┃           Endereço de IP           ┃\n");
 	printf("\t┣━━━━━━━━━━━━━╋━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫\n");
 	printf("\t┃     %02d      ┃  %6d   ┃  %32s  ┃\n", router[id_router].id,  router[id_router].port,  router[id_router].ip);
-	printf("\t┗━━━━━━━━━━━━━┻━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n");
+	printf("\t┗━━━━━━━━━━━━━┻━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n\n");
+	sleep(2);
 
 	if((router_socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1)
-		die("Erro ao criar socket!\n");
+		die("\tErro ao criar socket! ");
 
 	memset((char *) &si_me, 0, sizeof(si_me));
 	
@@ -101,7 +104,7 @@ void create_router(){ //função que cria os sockets para os roteadores
 	si_me.sin_addr.s_addr = htonl(INADDR_ANY);
 
 	if(bind(router_socket, (struct sockaddr *) &si_me, sizeof(si_me)) == -1)
-		die("Erro ao conectar o socket a porta!\n");
+		die("\tErro ao conectar o socket a porta! ");
 }
 
 void show_messages(){
@@ -113,19 +116,21 @@ void show_messages(){
 
 void send_message(int next_id, Package msg_out){//função que enviar mensagem
 	int timeouts = 0;
-	printf("Enviando pacote para o roteador de ID %d\n", next_id+1);
-
+	printf("\t┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n");
+	printf("\t┃ Enviando mensagem n° %02d para o roteador de ID %02d...    ┃\n", qtd_message, next_id+1);
+	printf("\t┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n\n");
+	
 	si_other.sin_port = htons(router[next_id].port); //enviando para o socket
 
 	if(inet_aton(router[next_id].ip, &si_other.sin_addr) == 0)
-		die("Erro ao tentar encontrar o IP destino inet_aton()\n");
+		die("\t Erro ao tentar encontrar o IP destino inet_aton() ");
 
 	else{
 		do{
 			router[id_router].waiting_ack = TRUE;
 			
 			if(sendto(router_socket, &msg_out, sizeof(msg_out), 0, (struct sockaddr*) &si_other, sizeof(si_other)) == -1)
-				die("Erro ao enviar a mensagem! sendto()");
+				die("\t Erro ao enviar a mensagem! sendto() ");
 
 			int cont = 1;
 
@@ -148,6 +153,7 @@ void send_message(int next_id, Package msg_out){//função que enviar mensagem
 		else{
 			router[id_router].waiting_ack = FALSE;
 			printf("\n Envio Cancelado!\n");
+			qtd_message--;
 		}
 		sleep(2);
 	}	
@@ -185,15 +191,15 @@ void create_message(){//função cria mensagem
 void menu(){ //função menu
 	sleep(3);
 	system("clear");
-		printf("\t\t┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n");
-		printf("\t\t┃           Roteador %02d           ┃\n", id_router+1);
-		printf("\t\t┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫\n");
-		printf("\t\t┃ ➊ ─ Enviar mensagem             ┃\n");
-		printf("\t\t┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫\n");
-		printf("\t\t┃ ➋ ─ Ver mensagens anteriores    ┃\n");
-		printf("\t\t┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫\n");
-		printf("\t\t┃ ⓿ ─ Sair                        ┃\n");
-		printf("\t\t┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n\n\t\t  ");
+		printf("\t┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n");
+		printf("\t┃           Roteador %02d           ┃\n", id_router+1);
+		printf("\t┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫\n");
+		printf("\t┃ ➊ ─ Enviar mensagem             ┃\n");
+		printf("\t┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫\n");
+		printf("\t┃ ➋ ─ Ver mensagens anteriores    ┃\n");
+		printf("\t┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫\n");
+		printf("\t┃ ⓿ ─ Sair                        ┃\n");
+		printf("\t┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n\n\t  ");
 }
 
 void *sender(void *data){ //função da thread sender - transmissor
@@ -293,15 +299,16 @@ void print_dijkstra_line(mat_dijkstra dijkstra_info[], int indice){
 }
 
 void print_dijkstra(mat_dijkstra dijkstra_info[]){
-	printf("\t┏━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━┓\n");
-    printf("\t┃ Vértice ┃ Anterior  ┃   Custo   ┃  Menor Caminho  ┃\n");
-    printf("\t┣━━━━━━━━━╋━━━━━━━━━━━╋━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━┛\n");
+	printf("\t┏━━━━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n");
+    printf("\t┃   Vértice   ┃ Anterior  ┃   Custo   ┃      Menor Caminho     ┃\n");
+    printf("\t┣━━━━━━━━━━━━━╋━━━━━━━━━━━╋━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━┛\n");
     for(int i = 0; i < N_ROT; i++){
-        printf("\t┃    %d    ┃     %d     ┃ %5d     ┃", i +1, dijkstra_info[i].prev+1, dijkstra_info[i].cost);
+   		printf("\t┃      %d      ┃     %d     ┃ %5d     ┃", i +1, dijkstra_info[i].prev+1, dijkstra_info[i].cost);
         print_dijkstra_line(dijkstra_info, i);
         printf("\n");
     }
-    printf("\t┗━━━━━━━━━┻━━━━━━━━━━━┻━━━━━━━━━━━┛\n\n");
+    printf("\t┗━━━━━━━━━━━━━┻━━━━━━━━━━━┻━━━━━━━━━━━┛\n\n");
+	sleep(2);
 }
 
 int main(int argc, char *argv[]){
@@ -331,9 +338,9 @@ int main(int argc, char *argv[]){
 		define_path(dijkstra_info, i, i);
 	pathcost(links_table);
 
-	print_dijkstra(dijkstra_info);
-
 	create_router(); //função que lê e cria os roteadores do arquivo roteadores.config
+
+	print_dijkstra(dijkstra_info);
 
 	pthread_create(&receiver_thread, NULL, receiver, NULL); //terceiro parametro é a função que a thread ira rodar
 	pthread_create(&sender_thread, NULL, sender, NULL);
@@ -343,3 +350,4 @@ int main(int argc, char *argv[]){
 
 	return 0;
 }
+    
