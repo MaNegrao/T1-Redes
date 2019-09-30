@@ -80,7 +80,7 @@ void create_router(){ //função que cria os sockets para os roteadores
 	FILE *config_file = fopen("roteadores.config", "r");
 
 	if(!config_file)
-		die("\tNão foi possivel abrir o arquvio de configuração dos roteadores! ");
+		die("\t Não foi possivel abrir o arquvio de configuração dos roteadores! ");
 
 	for (int i = 0; fscanf(config_file, "%d %d %s", &router[i].id, &router[i].port, router[i].ip) != EOF; i++);
 	fclose(config_file);
@@ -95,7 +95,7 @@ void create_router(){ //função que cria os sockets para os roteadores
 	sleep(2);
 
 	if((router_socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1)
-		die("\tErro ao criar socket! ");
+		die("\t Erro ao criar socket! ");
 
 	memset((char *) &si_me, 0, sizeof(si_me));
 	
@@ -104,20 +104,24 @@ void create_router(){ //função que cria os sockets para os roteadores
 	si_me.sin_addr.s_addr = htonl(INADDR_ANY);
 
 	if(bind(router_socket, (struct sockaddr *) &si_me, sizeof(si_me)) == -1)
-		die("\tErro ao conectar o socket a porta! ");
+		die("\t Erro ao conectar o socket a porta! ");
 }
 
 void show_messages(){
 	for(int i = 0; i < qtd_message_in; i++){
-		printf("Mensagem #%d recebida de %d\n", router[id_router].msg_in[i].num_pack, router[id_router].msg_in[i].origin+1);
-		printf(" --- %s", router[id_router].msg_in[i].content);
+		printf("\t┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n");
+		printf("\t┃      Historico de mensagens recebidas pelo roteador %02d        ┃\n", id_router+1);
+		printf("\t┣━━━━━━━━━━━┳━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫\n");    
+		printf("\t┃ ID Origem ┃ Nº MSG ┃                 Mensagem                 ┃\n");
+		printf("\t┗━━━━━━━━━━━┻━━━━━━━━┻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n\n");
+		printf("\t      %d         %02d     %40s \n", router[id_router].msg_in[i].origin+1, router[id_router].msg_in[i].num_pack, router[id_router].msg_in[i].content);
 	}
 }
 
 void send_message(int next_id, Package msg_out){//função que enviar mensagem
 	int timeouts = 0;
 	printf("\t┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n");
-	printf("\t┃ Enviando mensagem n° %02d para o roteador de ID %02d...    ┃\n", qtd_message, next_id+1);
+	printf("\t┃ Enviando mensagem n°%02d para o roteador de ID %02d...           ┃\n", qtd_message, next_id+1);
 	printf("\t┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n\n");
 	
 	si_other.sin_port = htons(router[next_id].port); //enviando para o socket
@@ -143,16 +147,22 @@ void send_message(int next_id, Package msg_out){//função que enviar mensagem
 
 			if(router[id_router].waiting_ack){
 				timeouts++;
-				printf("\tTempo esgotado, enviando novamente!\n");
+				printf("\t┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n");
+				printf("\t┃ Tempo de envio esgotado, tentando enviar novamente...        ┃\n");
+				printf("\t┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n\n");
 			}
 		}while(timeouts < TIMEOUT_MAX && router[id_router].waiting_ack);
 
-		if(!router[id_router].waiting_ack)
-			printf("\t ACK Confirmada!\n");
-
+		if(!router[id_router].waiting_ack){
+			printf("\t┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n");
+			printf("\t┃ ACK Confirmada! A mensagem foi recebida pelo destinatário... ┃\n");
+			printf("\t┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n\n");
+		}
 		else{
 			router[id_router].waiting_ack = FALSE;
-			printf("\n Envio Cancelado!\n");
+			printf("\t┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n");
+			printf("\t┃ Envio de mensagem cancelado! Número de tentativas excedido.. ┃\n");
+			printf("\t┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n\n");
 			qtd_message--;
 		}
 		sleep(2);
@@ -164,14 +174,22 @@ void create_message(){//função cria mensagem
 	Package msg_out; 
 
 	do{ //verificação do roteador destino
-		printf("Digite o roteador destino:\n");
+		printf("\t┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n");
+		printf("\t┃ Digite o ID do roteador para enviar a mensagem...            ┃\n");
+		printf("\t┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n\n\t ");
 		scanf("%d", &destination);
 		destination = destination - 1;
-		if(destination < 0 || destination >= N_ROT)
-			printf("O numero do roteador informado não existe. Por favor digite novamente!\n");
+		if(destination < 0 || destination >= N_ROT){
+			printf("\t┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n");
+			printf("\t┃ O ID informado é inválido. Por favor digite novamente...     ┃\n");
+			printf("\t┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n\n\t ");
+		}
 	}while(destination < 0 || destination >= N_ROT);
 
-	printf("Digite a mensagem a ser enviada para o roteador %d:\n", destination+1);
+	printf("\t┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n");
+	printf("\t┃ Digite o conteudo da mensagem a ser enviada para o roteador: ┃\n");
+	printf("\t┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n\n\t  ");
+
 	__fpurge(stdin); //limpar o buffer de algum lixo de memória
 	fgets(router[id_router].msg_out[qtd_message].content, MSG_SIZE, stdin);
 
@@ -191,15 +209,15 @@ void create_message(){//função cria mensagem
 void menu(){ //função menu
 	sleep(3);
 	system("clear");
-		printf("\t┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n");
-		printf("\t┃           Roteador %02d           ┃\n", id_router+1);
-		printf("\t┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫\n");
-		printf("\t┃ ➊ ─ Enviar mensagem             ┃\n");
-		printf("\t┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫\n");
-		printf("\t┃ ➋ ─ Ver mensagens anteriores    ┃\n");
-		printf("\t┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫\n");
-		printf("\t┃ ⓿ ─ Sair                        ┃\n");
-		printf("\t┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n\n\t  ");
+		printf("\t┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n");
+		printf("\t┃                           Roteador %02d                        ┃\n", id_router+1);
+		printf("\t┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫\n");
+		printf("\t┃                     ➊ ─ Enviar mensagem ─ ➊                  ┃\n");
+		printf("\t┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫\n");
+		printf("\t┃                ➋ ─ Ver mensagens anteriores ─ ➋              ┃\n");
+		printf("\t┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫\n");
+		printf("\t┃                         ⓿ ─ Sair ─ ⓿                         ┃\n");
+		printf("\t┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n\n\t  ");
 }
 
 void *sender(void *data){ //função da thread sender - transmissor
@@ -223,7 +241,9 @@ void *sender(void *data){ //função da thread sender - transmissor
 				show_messages();
 				break;
 			default:
-				printf("Opção inválida!\n");
+				printf("\t┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n");
+				printf("\t┃ Opção inválida, digite novamete.. ┃\n");
+				printf("\t┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n\n\t  ");
 				break;
 		}
 	}
@@ -238,12 +258,15 @@ void *receiver(void *data){ //função da thread receiver
 		Package message_out = router[id_router].msg_out[qtd_message];
 
 		if((recvfrom(router_socket, &message_in, sizeof(message_in), 0, (struct sockaddr *) &si_me, &slen)) == -1)
-			die("Erro ao receber mensagem! recvfrom()\n");
+			die("\tErro ao receber mensagem! recvfrom() ");
 
 		if(message_in.dest == id_router){
 			if(!message_in.ack){
-				printf("Pacote recebida do roteador %d!\n", message_in.origin+1);
-				printf("Mensagem: %100s\n", message_in.content);
+				printf("\t┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n");
+				printf("\t┃ Mensagem Nº %02d recebido do roteador com ID %02d...             ┃\n", message_out.num_pack+1, message_out.origin+1);
+				printf("\t┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n");
+				printf("\t Mensagem: %50s \n", message_in.content);
+				
 				strcpy(router[id_router].msg_in[qtd_message_in].content, message_in.content);
 				router[id_router].msg_in[qtd_message_in].num_pack = message_in.num_pack;
 				router[id_router].msg_in[qtd_message_in].origin = message_in.origin;
@@ -257,7 +280,7 @@ void *receiver(void *data){ //função da thread receiver
 				si_other.sin_port = htons(router[ack_reply.dest].port); //enviando para o socket
 
 				if(sendto(router_socket, &ack_reply, sizeof(ack_reply), 0, (struct sockaddr*) &si_other, sizeof(si_other)) == -1)
-					die("Erro ao enviar a mensagem! sendto()\n");
+					die("\tErro ao enviar a mensagem! sendto() ");
 			}
 			else if(router[id_router].waiting_ack)
 				router[id_router].waiting_ack = FALSE;
@@ -265,8 +288,11 @@ void *receiver(void *data){ //função da thread receiver
 		else{
 			message_out = message_in;
 			next = router_table.path[message_out.dest];
-			printf("Retransmitindo de %d para %d\n", id_router+1, next+1);
-
+			printf("\t┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n");
+			printf("\t┃ Encaminhado mensagem do roteador %02d para o roteador %02d...    ┃\n", id_router+1, next+1);
+			printf("\t┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n\n");
+			sleep(2);
+			menu();
 			send_message(next, message_out);
 		}
 	}
@@ -308,7 +334,7 @@ void print_dijkstra(mat_dijkstra dijkstra_info[]){
         printf("\n");
     }
     printf("\t┗━━━━━━━━━━━━━┻━━━━━━━━━━━┻━━━━━━━━━━━┛\n\n");
-	sleep(2);
+	sleep(3);
 }
 
 int main(int argc, char *argv[]){
@@ -317,14 +343,14 @@ int main(int argc, char *argv[]){
 
 	//faz uma comparação com o que veio de parametro no comando executável
 	if(argc < 2)
-		die("Digite o ID do roteador!\n");
+		die("\tDigite o ID do roteador! ");
 	else if(argc > 2)		
-		die("Digite apenas um ID para o roteador!\n");
+		die("\tDigite apenas um ID para o roteador! ");
 
 	id_router = strtol(argv[1], NULL, 10) - 1; //função de casting do argv id para int 
 	
 	if(id_router >= N_ROT)
-		die("ID do roteador inválido!\n");
+		die("\tID do roteador inválido! ");
 
 	memset(links_table, -1, sizeof(int) * N_ROT * N_ROT); //limpa a tabela router
 
