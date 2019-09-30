@@ -104,19 +104,48 @@ void create_router(){ //função que cria os sockets para os roteadores
 		die("Erro ao conectar o socket a porta!\n");
 }
 
+void show_messages(){
+	for(int i = 0; i < qtd_message_in; i++){
+		printf("Mensagem #%d recebida de %d\n", router[id_router].msg_in[i].num_pack, router[id_router].msg_in[i].origin+1);
+		printf(" --- %s", router[id_router].msg_in[i].content);
+	}
+}
+
 void send_message(int next_id, Package msg_out){//função que enviar mensagem
+	int timeouts = 0;
 	printf("Enviando pacote para o roteador de ID %d\n", next_id+1);
 	sleep(1);
 
-	si_other.sin_port = htons(router[next_id].port); //enviando para o socket
-
 	if(inet_aton(router[next_id].ip, &si_other.sin_addr) == 0)
-		die("Erro ao tentar encontrar o IP destino\n");
-	else{
+		die("Erro ao tentar encontrar o IP destino inet_aton()\n");
+
+	do{
+		router[id_router].waiting_ack = TRUE;
+		
 		if(sendto(router_socket, &msg_out, sizeof(msg_out), 0, (struct sockaddr*) &si_other, sizeof(si_other)) == -1)
-			die("Erro ao enviar a mensagem!\n");
-		else
-			printf("O roteador %d está enviando a mensagem de numero %d para o roteador de ID %d\n", msg_out.origin+1, msg_out.num_pack+1, msg_out.dest+1);		
+			die("Erro ao enviar a mensagem! sendto()\n");
+
+		int cont = 1;
+
+		while(cont++ != TIMEOUT_MS && router[id_router].waiting_ack){
+			if(!router[id_router].waiting_ack)
+				break;
+			else
+				usleep(100);
+		}
+
+		if(router[id_router].waiting_ack){
+			timeouts++;
+			printf("\tTempo esgotado, enviando novamente!\n");
+		}
+	}while(timeouts < TIMEOUT_MAX && router[id_router].waiting_ack);
+
+	if(!router[id_router].waiting_ack)
+		printf("\t ACK Confirmed!\n");
+
+	else{
+		router[id_router].waiting_ack = FALSE;
+		printf("\n Send Aborted!\n");
 	}
 }
 
@@ -162,7 +191,6 @@ void menu(){ //função menu
 }
 
 void *sender(void *data){ //função da thread sender - transmissor
-	char buf[BUFLEN];
 	int op;
 	
 	memset((char *) &si_other, 0, sizeof(si_other));
@@ -182,6 +210,7 @@ void *sender(void *data){ //função da thread sender - transmissor
 				sleep(1);
 				break;
 			case 2: //ver mensagens anteriores
+				show_messages();
 				break;
 			default:
 				printf("Opção inválida!\n");
@@ -198,26 +227,35 @@ void *receiver(void *data){ //função da thread receiver
 		Package message_in = router[id_router].msg_in[qtd_message_in];
 		Package message_out = router[id_router].msg_out[qtd_message];
 
-		if((recvfrom(router_socket, &message_in, sizeof(message_in), 0, (struct sockaddr *) &si_me, &slen)) == -1){
-			printf("Erro ao receber mensagem!\n");
-			qtd_message_in--;
-		}
-		else{
-			if(message_in.dest == id_router){
-				printf("Mensagem recebida do roteador %d!\n", message_in.origin+1);
+		if((recvfrom(router_socket, &message_in, sizeof(message_in), 0, (struct sockaddr *) &si_me, &slen)) == -1)
+			die("Erro ao receber mensagem! recvfrom()\n");
+
+		if(message_in.dest == id_router){
+			if(!message_in.ack){
+				printf("Pacote recebida do roteador %d!\n", message_in.origin+1);
 				printf("Mensagem: %100s\n", message_in.content);
 				strcpy(router[id_router].msg_in[qtd_message_in].content, message_in.content);
 				router[id_router].msg_in[qtd_message_in].num_pack = message_in.num_pack;
 				router[id_router].msg_in[qtd_message_in].origin = message_in.origin;
 				qtd_message_in++;
-			}
-			else{
-				message_out = message_in;
-				next = router_table.path[message_out.dest];
-				printf("Retransmitindo de %d para %d\n", id_router+1, next+1);
 
-				send_message(next, message_out);
+				Package ack_reply;
+				ack_reply.origin = message_in.dest;
+				ack_reply.dest = message_in.origin;
+				ack_reply.ack = TRUE;
+
+				if(sendto(router_socket, &ack_reply, sizeof(ack_reply), 0, (struct sockaddr*) &si_other, sizeof(si_other)) == -1)
+					die("Erro ao enviar a mensagem! sendto()\n");
 			}
+			else if(router[id_router].waiting_ack)
+				router[id_router].waiting_ack = FALSE;
+		}
+		else{
+			message_out = message_in;
+			next = router_table.path[message_out.dest];
+			printf("Retransmitindo de %d para %d\n", id_router+1, next+1);
+
+			send_message(next, message_out);
 		}
 	}
 }
