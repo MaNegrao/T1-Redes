@@ -114,39 +114,43 @@ void show_messages(){
 void send_message(int next_id, Package msg_out){//função que enviar mensagem
 	int timeouts = 0;
 	printf("Enviando pacote para o roteador de ID %d\n", next_id+1);
-	sleep(1);
+
+	si_other.sin_port = htons(router[next_id].port); //enviando para o socket
 
 	if(inet_aton(router[next_id].ip, &si_other.sin_addr) == 0)
 		die("Erro ao tentar encontrar o IP destino inet_aton()\n");
 
-	do{
-		router[id_router].waiting_ack = TRUE;
-		
-		if(sendto(router_socket, &msg_out, sizeof(msg_out), 0, (struct sockaddr*) &si_other, sizeof(si_other)) == -1)
-			die("Erro ao enviar a mensagem! sendto()\n");
-
-		int cont = 1;
-
-		while(cont++ != TIMEOUT_MS && router[id_router].waiting_ack){
-			if(!router[id_router].waiting_ack)
-				break;
-			else
-				usleep(100);
-		}
-
-		if(router[id_router].waiting_ack){
-			timeouts++;
-			printf("\tTempo esgotado, enviando novamente!\n");
-		}
-	}while(timeouts < TIMEOUT_MAX && router[id_router].waiting_ack);
-
-	if(!router[id_router].waiting_ack)
-		printf("\t ACK Confirmed!\n");
-
 	else{
-		router[id_router].waiting_ack = FALSE;
-		printf("\n Send Aborted!\n");
-	}
+		do{
+			router[id_router].waiting_ack = TRUE;
+			
+			if(sendto(router_socket, &msg_out, sizeof(msg_out), 0, (struct sockaddr*) &si_other, sizeof(si_other)) == -1)
+				die("Erro ao enviar a mensagem! sendto()");
+
+			int cont = 1;
+
+			while(cont++ != TIMEOUT_MS && router[id_router].waiting_ack){
+				if(!router[id_router].waiting_ack)
+					break;
+				else
+					usleep(10000);
+			}
+
+			if(router[id_router].waiting_ack){
+				timeouts++;
+				printf("\tTempo esgotado, enviando novamente!\n");
+			}
+		}while(timeouts < TIMEOUT_MAX && router[id_router].waiting_ack);
+
+		if(!router[id_router].waiting_ack)
+			printf("\t ACK Confirmada!\n");
+
+		else{
+			router[id_router].waiting_ack = FALSE;
+			printf("\n Envio Cancelado!\n");
+		}
+		sleep(2);
+	}	
 }
 
 void create_message(){//função cria mensagem
@@ -168,6 +172,7 @@ void create_message(){//função cria mensagem
 	router[id_router].msg_out[qtd_message].num_pack = qtd_message;
 	router[id_router].msg_out[qtd_message].origin = id_router;
 	router[id_router].msg_out[qtd_message].dest = destination;
+	router[id_router].msg_out[qtd_message].ack = FALSE;
 
 	next_id = router_table.path[destination]; //quem vai receber a mensagem
 
@@ -178,7 +183,8 @@ void create_message(){//função cria mensagem
 }
 
 void menu(){ //função menu
-		system("clear");
+	sleep(3);
+	system("clear");
 		printf("\t\t┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n");
 		printf("\t\t┃           Roteador %02d           ┃\n", id_router+1);
 		printf("\t\t┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫\n");
@@ -197,7 +203,6 @@ void *sender(void *data){ //função da thread sender - transmissor
 	si_other.sin_family = AF_INET;
 	si_other.sin_addr.s_addr =  htonl(INADDR_ANY);
 
-	sleep(2);
 	while(1){
 		menu();
 		scanf("%d", &op);
@@ -207,7 +212,6 @@ void *sender(void *data){ //função da thread sender - transmissor
 				break;
 			case 1: //enviar mensagem
 				create_message();
-				sleep(1);
 				break;
 			case 2: //ver mensagens anteriores
 				show_messages();
@@ -243,6 +247,8 @@ void *receiver(void *data){ //função da thread receiver
 				ack_reply.origin = message_in.dest;
 				ack_reply.dest = message_in.origin;
 				ack_reply.ack = TRUE;
+
+				si_other.sin_port = htons(router[ack_reply.dest].port); //enviando para o socket
 
 				if(sendto(router_socket, &ack_reply, sizeof(ack_reply), 0, (struct sockaddr*) &si_other, sizeof(si_other)) == -1)
 					die("Erro ao enviar a mensagem! sendto()\n");
