@@ -7,7 +7,6 @@
 #include<sys/socket.h>
 #include<pthread.h>
 
-#define BUFLEN 512    //tamanho máximo do buffer
 #define N_ROT 6       //número de roteadores
 #define MSG_SIZE 100  //tamanho da mensagem
 #define QUEUE_SIZE 100//tamanho da fila dos roteadores

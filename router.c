@@ -169,7 +169,6 @@ void menu(){ //função menu
 }
 
 void *sender(void *data){ //função da thread sender - transmissor
-	char buf[BUFLEN];
 	int op;
 	
 	memset((char *) &si_other, 0, sizeof(si_other));
@@ -213,7 +212,7 @@ void *receiver(void *data){ //função da thread receiver
 		else{
 			if(message_in.dest == id_router){
 				printf("Mensagem recebida do roteador %d!\n", message_in.origin+1);
-				printf("Mensagem: %100s\n", message_in.content);
+				printf("Mensagem: %s\n", message_in.content);
 				strcpy(router[id_router].msg_in[qtd_message_in].content, message_in.content);
 				router[id_router].msg_in[qtd_message_in].num_pack = message_in.num_pack;
 				router[id_router].msg_in[qtd_message_in].origin = message_in.origin;
