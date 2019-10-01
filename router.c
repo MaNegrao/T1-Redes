@@ -164,9 +164,9 @@ void send_message(int next_id, Package msg_out){//função que enviar mensagem
 			printf("\t┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n");
 			printf("\t┃ Envio de mensagem cancelado! Número de tentativas excedido.. ┃\n");
 			printf("\t┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n\n");
-			qtd_message--;
 		}
-		sleep(2);
+		sleep(6);
+		menu();
 	}	
 }
 
@@ -215,10 +215,10 @@ void menu(){ //função menu
 		printf("\t┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫\n");
 		printf("\t┃                     ➊ ─ Enviar mensagem ─ ➊                  ┃\n");
 		printf("\t┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫\n");
-		printf("\t┃                ➋ ─ Ver mensagens anteriores ─ ➋              ┃\n");
+		printf("\t┃               ➋ ─ Ver historico de mensagens ─ ➋             ┃\n");
 		printf("\t┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫\n");
 		printf("\t┃                         ⓿ ─ Sair ─ ⓿                         ┃\n");
-		printf("\t┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n\n\t  ");
+		printf("\t┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n\n");
 }
 
 void *sender(void *data){ //função da thread sender - transmissor
@@ -293,7 +293,6 @@ void *receiver(void *data){ //função da thread receiver
 			printf("\t┃ Encaminhado mensagem do roteador %02d para o roteador %02d...    ┃\n", id_router+1, next+1);
 			printf("\t┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n\n");
 			sleep(2);
-			menu();
 			send_message(next, message_out);
 		}
 	}
