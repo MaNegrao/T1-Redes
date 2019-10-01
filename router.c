@@ -4,6 +4,7 @@ Router router[N_ROT];
 Table router_table;
 
 pthread_t receiver_thread, sender_thread;
+pthread_mutex_t ack_mutex = PTHREAD_MUTEX_INITIALIZER;
 int router_socket, id_router, qtd_message = 0, qtd_message_in = 0;
 struct sockaddr_in si_me, si_other;
 
@@ -130,9 +131,14 @@ void send_message(int next_id, Package msg_out){//função que enviar mensagem
 		die("\t Erro ao tentar encontrar o IP destino inet_aton() ");
 
 	else{
+		
+
 		do{
+			pthread_mutex_lock(&ack_mutex);
 			router[id_router].waiting_ack = TRUE;
+			pthread_mutex_unlock(&ack_mutex);
 			
+
 			if(sendto(router_socket, &msg_out, sizeof(msg_out), 0, (struct sockaddr*) &si_other, sizeof(si_other)) == -1)
 				die("\t Erro ao enviar a mensagem! sendto() ");
 
@@ -159,7 +165,9 @@ void send_message(int next_id, Package msg_out){//função que enviar mensagem
 			printf("\t┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n\n");
 		}
 		else{
+			pthread_mutex_lock(&ack_mutex);
 			router[id_router].waiting_ack = FALSE;
+			pthread_mutex_unlock(&ack_mutex);
 			printf("\t┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n");
 			printf("\t┃ Envio de mensagem cancelado! Número de tentativas excedido.. ┃\n");
 			printf("\t┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n\n");
@@ -214,7 +222,7 @@ void menu(){ //função menu
 		printf("\t┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫\n");
 		printf("\t┃                     ➊ ─ Enviar mensagem ─ ➊                  ┃\n");
 		printf("\t┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫\n");
-		printf("\t┃                ➋ ─ Ver mensagens anteriores ─ ➋              ┃\n");
+		printf("\t┃               ➋ ─ Ver historico de mensagens ─ ➋              ┃\n");
 		printf("\t┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫\n");
 		printf("\t┃                         ⓿ ─ Sair ─ ⓿                         ┃\n");
 		printf("\t┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n\n\t  ");
@@ -282,8 +290,11 @@ void *receiver(void *data){ //função da thread receiver
 				if(sendto(router_socket, &ack_reply, sizeof(ack_reply), 0, (struct sockaddr*) &si_other, sizeof(si_other)) == -1)
 					die("\tErro ao enviar a mensagem! sendto() ");
 			}
-			else if(router[id_router].waiting_ack)
+			else if(router[id_router].waiting_ack){
+				pthread_mutex_lock(&ack_mutex);
 				router[id_router].waiting_ack = FALSE;
+				pthread_mutex_unlock(&ack_mutex);
+			}
 		}
 		else{
 			message_out = message_in;
