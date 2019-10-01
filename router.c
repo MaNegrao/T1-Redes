@@ -118,6 +118,7 @@ void show_messages(){
 	}
 }
 
+
 void send_message(int next_id, Package msg_out){//função que enviar mensagem
 	int timeouts = 0;
 	printf("\t┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n");
@@ -256,7 +257,7 @@ void *receiver(void *data){ //função da thread receiver
 	while(1){
 		Package message_in = router[id_router].msg_in[qtd_message_in];
 		Package message_out = router[id_router].msg_out[qtd_message];
-
+    
 		if((recvfrom(router_socket, &message_in, sizeof(message_in), 0, (struct sockaddr *) &si_me, &slen)) == -1)
 			die("\tErro ao receber mensagem! recvfrom() ");
 

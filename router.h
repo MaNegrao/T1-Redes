@@ -7,6 +7,7 @@
 #include<sys/socket.h>
 #include<pthread.h>
 
+
 #define TIMEOUT_MAX 10    //tempo maximo timeout
 #define TIMEOUT_MS 100
 #define N_ROT 6       //número de roteadores
