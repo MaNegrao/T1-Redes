@@ -12,6 +12,20 @@ void die(char *s){ //função que retorna os erros que aconteçam na execução 
 	exit(1);
 }
 
+void menu(){ //função menu
+	sleep(3);
+	system("clear");
+		printf("\t┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n");
+		printf("\t┃                           Roteador %02d                        ┃\n", id_router+1);
+		printf("\t┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫\n");
+		printf("\t┃                     ➊ ─ Enviar mensagem ─ ➊                  ┃\n");
+		printf("\t┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫\n");
+		printf("\t┃               ➋ ─ Ver historico de mensagens ─ ➋             ┃\n");
+		printf("\t┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫\n");
+		printf("\t┃                         ⓿ ─ Sair ─ ⓿                         ┃\n");
+		printf("\t┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n\n");
+}
+
 void inicializa_dijkstra(mat_dijkstra dijkstra_info[]) {
     for (int i = 0; i < N_ROT; i++) {
         dijkstra_info[i].visit = 0;
@@ -132,7 +146,8 @@ void send_message(int next_id, Package msg_out){//função que enviar mensagem
 
 	else{
 		do{
-			router[id_router].waiting_ack = TRUE;
+			if(msg_out.origin == id_router)
+				router[id_router].waiting_ack = TRUE;
 			
 			if(sendto(router_socket, &msg_out, sizeof(msg_out), 0, (struct sockaddr*) &si_other, sizeof(si_other)) == -1)
 				die("\t Erro ao enviar a mensagem! sendto() ");
@@ -160,7 +175,8 @@ void send_message(int next_id, Package msg_out){//função que enviar mensagem
 			printf("\t┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n\n");
 		}
 		else{
-			router[id_router].waiting_ack = FALSE;
+			if(msg_out.origin == id_router)
+				router[id_router].waiting_ack = FALSE;
 			printf("\t┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n");
 			printf("\t┃ Envio de mensagem cancelado! Número de tentativas excedido.. ┃\n");
 			printf("\t┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n\n");
@@ -205,20 +221,6 @@ void create_message(){//função cria mensagem
 	qtd_message++; //atualiza a quantidade de mensagem que foram enviadas
 
 	send_message(next_id, msg_out);
-}
-
-void menu(){ //função menu
-	sleep(3);
-	system("clear");
-		printf("\t┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n");
-		printf("\t┃                           Roteador %02d                        ┃\n", id_router+1);
-		printf("\t┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫\n");
-		printf("\t┃                     ➊ ─ Enviar mensagem ─ ➊                  ┃\n");
-		printf("\t┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫\n");
-		printf("\t┃               ➋ ─ Ver historico de mensagens ─ ➋             ┃\n");
-		printf("\t┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫\n");
-		printf("\t┃                         ⓿ ─ Sair ─ ⓿                         ┃\n");
-		printf("\t┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n\n");
 }
 
 void *sender(void *data){ //função da thread sender - transmissor
@@ -284,7 +286,8 @@ void *receiver(void *data){ //função da thread receiver
 					die("\tErro ao enviar a mensagem! sendto() ");
 			}
 			else if(router[id_router].waiting_ack)
-				router[id_router].waiting_ack = FALSE;
+				if(message_in.dest == id_router)
+					router[id_router].waiting_ack = FALSE;
 		}
 		else{
 			message_out = message_in;
