@@ -132,6 +132,10 @@ void show_messages(){
 	}
 }
 
+void forward_message(int next_id, Package msg_out){
+
+}
+
 
 void send_message(int next_id, Package msg_out){//função que enviar mensagem
 	int timeouts = 0;
@@ -158,7 +162,7 @@ void send_message(int next_id, Package msg_out){//função que enviar mensagem
 				if(!router[id_router].waiting_ack)
 					break;
 				else
-					usleep(10000);
+					sleep(5);
 			}
 
 			if(router[id_router].waiting_ack){
@@ -286,8 +290,7 @@ void *receiver(void *data){ //função da thread receiver
 					die("\tErro ao enviar a mensagem! sendto() ");
 			}
 			else if(router[id_router].waiting_ack)
-				if(message_in.dest == id_router)
-					router[id_router].waiting_ack = FALSE;
+				router[id_router].waiting_ack = FALSE;
 		}
 		else{
 			message_out = message_in;
