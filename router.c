@@ -4,7 +4,7 @@ Router router[N_ROT];
 Table router_table;
 
 pthread_t receiver_thread, sender_thread;
-int router_socket, id_router, qtd_message = 0, qtd_message_in = 0;
+int router_socket, id_router, qtd_message = 0, qtd_message_in = 0, max_cost = 100;
 struct sockaddr_in si_me, si_other;
 
 void die(char *s){ //função que retorna os erros que aconteçam na execução e encerra
@@ -78,17 +78,45 @@ void dijkstra(int graph[N_ROT][N_ROT], mat_dijkstra dijkstra_info[], int vertex)
 }	
 
 void read_links(int tab[N_ROT][N_ROT]){ //função que lê os enlaces
-  int x, y, cost;
-  FILE *file = fopen("enlaces.config", "r");
+	int x, y, cost;
+	for (int i = 0; i < N_ROT; i++){
+		if(i != id_router){
+			router_table.cost[i] = 100;
+			tab[id_router][i] = 100;
+		}
+	}
 
-  if (file){
-    for (int i = 0; fscanf(file, "%d %d %d", &x, &y, &cost) != EOF; i++){
-	  tab[x-1][y-1] = cost;
-      tab[y-1][x-1] = cost;
-    }
-    fclose(file);
-  }
-} 
+	FILE *file = fopen("enlaces.config", "r");
+
+	if (file){
+		for (int i = 0; fscanf(file, "%d %d %d", &x, &y, &cost) != EOF; i++){
+			if((x-1) == id_router){
+				tab[x-1][y-1] = cost;		
+				router_table.cost[y-1] = cost; 
+			}
+			else if((y-1) == id_router){
+				tab[y-1][x-1] = cost;
+				router_table.cost[x-1] = cost;
+			}	
+		}
+		fclose(file);
+	}
+}
+
+void send_links(){
+	int i;
+
+	for(i = 0; i < N_ROT; i++){
+		if(i != id_router){
+			si_other.sin_port = htons(router[i].port);
+			if(inet_aton(router[i].ip, &si_other.sin_addr) == 0)
+				die("\t Erro ao tentar encontrar o IP destino inet_aton() ");
+			else{
+				
+			}
+		}
+	}
+}
 
 void create_router(){ //função que cria os sockets para os roteadores
 	FILE *config_file = fopen("roteadores.config", "r");
@@ -132,7 +160,6 @@ void show_messages(){
 	}
 }
 
-
 void send_message(int next_id, Package msg_out){//função que enviar mensagem
 	int timeouts = 0;
 	printf("\t┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n");
@@ -158,7 +185,7 @@ void send_message(int next_id, Package msg_out){//função que enviar mensagem
 				if(!router[id_router].waiting_ack)
 					break;
 				else
-					usleep(10000);
+					usleep(20000);
 			}
 
 			if(router[id_router].waiting_ack){
@@ -169,17 +196,18 @@ void send_message(int next_id, Package msg_out){//função que enviar mensagem
 			}
 		}while(timeouts < TIMEOUT_MAX && router[id_router].waiting_ack);
 
-		if(!router[id_router].waiting_ack){
-			printf("\t┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n");
-			printf("\t┃ ACK Confirmada! A mensagem foi recebida pelo destinatário... ┃\n");
-			printf("\t┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n\n");
-		}
-		else{
-			if(msg_out.origin == id_router)
+		if(msg_out.origin == id_router){
+			if(!router[id_router].waiting_ack){
+				printf("\t┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n");
+				printf("\t┃ ACK Confirmada! A mensagem foi recebida pelo destinatário... ┃\n");
+				printf("\t┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n\n");
+			}
+			else{
 				router[id_router].waiting_ack = FALSE;
-			printf("\t┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n");
-			printf("\t┃ Envio de mensagem cancelado! Número de tentativas excedido.. ┃\n");
-			printf("\t┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n\n");
+				printf("\t┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n");
+				printf("\t┃ Envio de mensagem cancelado! Número de tentativas excedido.. ┃\n");
+				printf("\t┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n\n");
+			}
 		}
 		sleep(6);
 		menu();
@@ -286,8 +314,7 @@ void *receiver(void *data){ //função da thread receiver
 					die("\tErro ao enviar a mensagem! sendto() ");
 			}
 			else if(router[id_router].waiting_ack)
-				if(message_in.dest == id_router)
-					router[id_router].waiting_ack = FALSE;
+				router[id_router].waiting_ack = FALSE;
 		}
 		else{
 			message_out = message_in;
@@ -358,6 +385,9 @@ int main(int argc, char *argv[]){
 	memset(links_table, -1, sizeof(int) * N_ROT * N_ROT); //limpa a tabela router
 
 	read_links(links_table); //função que lê do arquivo enlaces.config
+
+	for(int i = 0; i < N_ROT; i++)
+		printf("%d %d\n", router_table.cost[i], links_table[id_router][i]);
 
 	inicializa_dijkstra(dijkstra_info); // inicializa matriz djkistra
 	dijkstra_info[id_router].cost = 0;
